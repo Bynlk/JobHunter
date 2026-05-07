@@ -46,25 +46,44 @@ class WebsiteCrawler(BaseCrawler):
             logger.error(f"加载公司配置文件失败: {e}")
             return []
     
-    def crawl(self):
+    def crawl(self, filters=None):
         """
         执行通用官网爬虫的抓取任务
-        
+
         遍历配置文件中的所有公司，逐一抓取其招聘官网的岗位信息
-        
+
+        Args:
+            filters: 定向抓取过滤条件 dict，可选键: companies, industries, locations
+
         Returns:
             list: 抓取到的岗位数据列表
         """
         all_jobs = []
-        
+
         # 加载公司配置
         companies = self.load_companies()
         if not companies:
             logger.error("未加载到公司配置，无法执行抓取")
             return all_jobs
-        
+
+        # 按过滤条件筛选公司
+        if filters:
+            filtered = []
+            for c in companies:
+                name = c.get('name', '')
+                industry = c.get('industry', '')
+                # 按公司名过滤
+                if filters.get('companies') and name not in filters['companies']:
+                    continue
+                # 按行业过滤
+                if filters.get('industries') and industry not in filters['industries']:
+                    continue
+                filtered.append(c)
+            companies = filtered
+            logger.info(f"定向过滤后剩余 {len(companies)} 家公司")
+
         total_companies = len(companies)
-        
+
         for idx, company in enumerate(companies, 1):
             if self.should_stop():
                 break

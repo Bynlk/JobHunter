@@ -22,10 +22,29 @@ class ShixisengCrawler(BaseCrawler):
         self.keywords = SHIXISENG_CONFIG['keywords']
         self._font_mapping = {}  # PUA char -> real char
 
-    def crawl(self):
+    def crawl(self, filters=None):
         all_jobs = []
 
-        for keyword in self.keywords:
+        # 定向抓取：组合关键词
+        keywords = list(self.keywords)
+        if filters and filters.get('industries'):
+            # 用行业名作为额外搜索关键词
+            for ind in filters['industries']:
+                # 去掉行业名中的 "/" 后缀部分，取主要词
+                main_word = ind.split('/')[0]
+                if main_word not in keywords:
+                    keywords.append(main_word)
+
+        # 定向抓取：尝试城市参数
+        city_param = ''
+        if filters and filters.get('locations'):
+            # 取第一个城市名（去掉省份前缀）
+            loc = filters['locations'][0]
+            city = loc.split('-')[-1] if '-' in loc else loc
+            if city != '全国':
+                city_param = f'&city={city}'
+
+        for keyword in keywords:
             if self.should_stop():
                 break
             logger.info(f"开始抓取实习僧，关键词: {keyword}")
@@ -35,7 +54,7 @@ class ShixisengCrawler(BaseCrawler):
                 if self.should_stop():
                     break
                 try:
-                    search_url = f"{self.base_url}?keyword={keyword}&type=intern&page={page_num}"
+                    search_url = f"{self.base_url}?keyword={keyword}&type=intern&page={page_num}{city_param}"
                     logger.info(f"抓取第 {page_num} 页: {search_url}")
 
                     page = self.create_page()

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JobHunter — 实习 & 校招岗位聚合平台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="/static/style.css" rel="stylesheet">
+    <link href="/static/style.css?v=2" rel="stylesheet">
 </head>
 <body>
     <div id="app" class="app-layout">
@@ -27,11 +27,27 @@
             </div>
 
             <div class="sidebar-body" v-show="!sidebarCollapsed">
-                <!-- 搜索 -->
+                <!-- 搜索（带实时建议） -->
                 <div class="sidebar-section">
                     <div class="search-box">
                         <i class="bi bi-search search-icon"></i>
-                        <input type="text" v-model="filters.keyword" placeholder="搜索岗位关键词..." @keyup.enter="searchJobs">
+                        <input type="text" v-model="searchKeyword" placeholder="搜索岗位、公司..."
+                               @focus="showSuggestions = searchSuggestions.length > 0"
+                               @blur="setTimeout(() => showSuggestions = false, 200)"
+                               @keyup.enter="filters.keyword = searchKeyword; searchJobs()">
+                        <div class="search-spinner" v-if="isSearching">
+                            <div class="spinner-sm"></div>
+                        </div>
+                    </div>
+                    <div class="suggestions-dropdown" v-if="showSuggestions && searchSuggestions.length > 0">
+                        <div class="suggestion-item" v-for="s in searchSuggestions" :key="s.id"
+                             @mousedown.prevent="selectSuggestion(s)">
+                            <div class="suggestion-title">{{ s.job_title }}</div>
+                            <div class="suggestion-meta">
+                                <span>{{ s.company_name }}</span>
+                                <span v-if="s.location"> | {{ s.location }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -56,9 +72,52 @@
                             </select>
                         </div>
 
+                        <!-- 地区层级多选 -->
                         <div class="filter-group">
                             <label class="filter-label">工作地点</label>
-                            <input type="text" v-model="filters.location" placeholder="如：北京">
+                            <div class="location-picker">
+                                <div class="location-trigger" @click="locationPickerOpen = !locationPickerOpen">
+                                    <span v-if="selectedLocations.length === 0" class="location-placeholder">选择工作地点...</span>
+                                    <span v-else class="location-count">已选 {{ selectedLocations.length }} 个地点</span>
+                                    <i class="bi" :class="locationPickerOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                </div>
+                                <div class="location-dropdown" v-if="locationPickerOpen">
+                                    <div class="location-selected-tags" v-if="selectedLocations.length > 0">
+                                        <span class="location-tag" v-for="loc in selectedLocations" :key="loc" @click.stop="toggleLocation(loc)">
+                                            {{ loc }} <i class="bi bi-x"></i>
+                                        </span>
+                                        <button class="location-clear-btn" @click.stop="clearLocations()">清除全部</button>
+                                    </div>
+                                    <div class="location-tree">
+                                        <div class="province-item" v-for="node in locationTree" :key="node.province">
+                                            <div class="province-header" @click="toggleProvince(node.province)">
+                                                <i class="bi expand-icon" :class="expandedProvinces.has(node.province) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                                                <label class="province-label" @click.stop>
+                                                    <input type="checkbox"
+                                                           :checked="isProvinceSelected(node.province, node.cities)"
+                                                           @change="selectAllProvince(node.province, node.cities, node.provinceInDb)">
+                                                    <span>{{ node.province }}</span>
+                                                </label>
+                                                <span class="province-count">{{ node.totalCount }}</span>
+                                            </div>
+                                            <div class="city-list" v-if="expandedProvinces.has(node.province)">
+                                                <label class="city-item" v-if="node.provinceInDb" @click.stop>
+                                                    <input type="checkbox"
+                                                           :checked="isLocationSelected(node.province)"
+                                                           @change="toggleLocation(node.province)">
+                                                    <span>{{ node.province }} (全部)</span>
+                                                </label>
+                                                <label class="city-item" v-for="city in node.cities" :key="city" @click.stop>
+                                                    <input type="checkbox"
+                                                           :checked="isLocationSelected(city)"
+                                                           @change="toggleLocation(city)">
+                                                    <span>{{ city }}</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="filter-group">
@@ -118,10 +177,10 @@
                                 <option value="">不限</option>
                                 <option value="民营企业">民营企业</option>
                                 <option value="国有企业">国有企业</option>
-                                <option value="外资企业">外资企业</option>
+                                <option value="外商独资/外企代表处">外资企业</option>
                                 <option value="合资企业">合资企业</option>
-                                <option value="事业单位">事业单位</option>
-                                <option value="政府机关">政府机关</option>
+                                <option value="股份制企业">股份制企业</option>
+                                <option value="上市公司">上市公司</option>
                             </select>
                         </div>
 
@@ -161,6 +220,13 @@
                     </button>
                 </div>
 
+                <!-- 定向抓取 -->
+                <div class="sidebar-section">
+                    <button class="btn-targeted" @click="showTargetedModal = true">
+                        <i class="bi bi-bullseye"></i> 定向抓取
+                    </button>
+                </div>
+
                 <!-- 统计信息 -->
                 <div class="sidebar-section" v-if="stats.total_jobs">
                     <h6 class="section-title"><i class="bi bi-bar-chart"></i> 数据统计</h6>
@@ -191,7 +257,6 @@
                 <div class="sidebar-section">
                     <h6 class="section-title"><i class="bi bi-cloud-download"></i> 数据抓取</h6>
 
-                    <!-- 进度条 -->
                     <div v-if="crawlStatus.status === 'running'" class="crawl-progress">
                         <div class="progress-info">
                             <div class="spinner"></div>
@@ -205,25 +270,21 @@
                         </span>
                     </div>
 
-                    <!-- 完成提示 -->
                     <div v-if="crawlStatus.status === 'done'" class="crawl-alert success">
                         <i class="bi bi-check-circle"></i>
                         <span>完成！新增 {{ crawlStatus.total_new }} 条</span>
                     </div>
 
-                    <!-- 错误提示 -->
                     <div v-if="crawlStatus.status === 'error'" class="crawl-alert error">
                         <i class="bi bi-exclamation-triangle"></i>
                         <span>{{ crawlStatus.error_message }}</span>
                     </div>
 
-                    <!-- 停止提示 -->
                     <div v-if="crawlStatus.status === 'stopped'" class="crawl-alert warning">
                         <i class="bi bi-stop-circle"></i>
                         <span>{{ crawlStatus.progress }}</span>
                     </div>
 
-                    <!-- 数据源选择 -->
                     <div class="source-options">
                         <label class="source-item" v-for="opt in crawlOptions" :key="opt.value"
                                :class="{ active: crawlSource === opt.value }">
@@ -277,14 +338,38 @@
                 </div>
             </div>
 
-            <!-- 加载中 -->
-            <div class="loading-state" v-if="loading">
+            <!-- 筛选标签栏 -->
+            <div class="filter-tags-bar" v-if="activeFilterTags.length > 0">
+                <span class="filter-tag-chip" v-for="tag in activeFilterTags" :key="tag.key">
+                    <i class="bi" :class="tag.icon"></i>
+                    {{ tag.label }}
+                    <button class="tag-remove" @click="removeFilter(tag.key)">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+                <button class="clear-all-filters" @click="resetFilters()">
+                    <i class="bi bi-x-circle"></i> 清除全部
+                </button>
+            </div>
+
+            <!-- 骨架屏加载 -->
+            <div class="job-list" v-if="showSkeleton">
+                <div class="job-card skeleton-card" v-for="n in 5" :key="'skel-'+n">
+                    <div class="skeleton-line skeleton-title"></div>
+                    <div class="skeleton-line skeleton-meta"></div>
+                    <div class="skeleton-line skeleton-desc"></div>
+                    <div class="skeleton-line skeleton-desc short"></div>
+                </div>
+            </div>
+
+            <!-- 首次加载 -->
+            <div class="loading-state" v-else-if="loading && jobs.length === 0">
                 <div class="loading-spinner"></div>
                 <p>加载中...</p>
             </div>
 
             <!-- 无数据 -->
-            <div class="empty-state" v-else-if="jobs.length === 0">
+            <div class="empty-state" v-else-if="!loading && jobs.length === 0">
                 <div class="empty-icon">
                     <i class="bi bi-inbox"></i>
                 </div>
@@ -293,7 +378,7 @@
             </div>
 
             <!-- 岗位卡片列表 -->
-            <div class="job-list">
+            <div class="job-list" v-else>
                 <div class="job-card" v-for="job in jobs" :key="job.id">
                     <div class="card-header">
                         <div class="card-main">
@@ -346,33 +431,43 @@
 
             <!-- 分页 -->
             <div class="pagination-wrapper" v-if="totalPages > 0">
-                <div class="pagination-info">
-                    第 {{ currentPage }} / {{ totalPages }} 页
-                </div>
-                <div class="pagination-controls">
-                    <button class="page-btn" :disabled="currentPage <= 1" @click="goToPage(1)">
-                        <i class="bi bi-chevron-double-left"></i>
-                    </button>
-                    <button class="page-btn" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <template v-for="page in displayPages" :key="page">
-                        <span class="page-ellipsis" v-if="page === '...'">...</span>
-                        <button class="page-btn" v-else :class="{ active: page === currentPage }" @click="goToPage(page)">
-                            {{ page }}
+                <div class="pagination-bar">
+                    <div class="per-page-selector">
+                        <select v-model.number="perPage" @change="currentPage = 1; fetchJobs()">
+                            <option :value="10">10 条/页</option>
+                            <option :value="20">20 条/页</option>
+                            <option :value="50">50 条/页</option>
+                            <option :value="100">100 条/页</option>
+                        </select>
+                    </div>
+                    <div class="pagination-info">
+                        第 {{ currentPage }} / {{ totalPages }} 页
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" :disabled="currentPage <= 1" @click="goToPage(1)">
+                            <i class="bi bi-chevron-double-left"></i>
                         </button>
-                    </template>
-                    <button class="page-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                    <button class="page-btn" :disabled="currentPage >= totalPages" @click="goToPage(totalPages)">
-                        <i class="bi bi-chevron-double-right"></i>
-                    </button>
-                </div>
-                <div class="pagination-jump">
-                    <span>跳至</span>
-                    <input type="number" v-model.number="jumpPage" @keyup.enter="goToPage(jumpPage)" min="1" :max="totalPages">
-                    <button @click="goToPage(jumpPage)">GO</button>
+                        <button class="page-btn" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <template v-for="page in displayPages" :key="page">
+                            <span class="page-ellipsis" v-if="page === '...'">...</span>
+                            <button class="page-btn" v-else :class="{ active: page === currentPage }" @click="goToPage(page)">
+                                {{ page }}
+                            </button>
+                        </template>
+                        <button class="page-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <button class="page-btn" :disabled="currentPage >= totalPages" @click="goToPage(totalPages)">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </button>
+                    </div>
+                    <div class="pagination-jump">
+                        <span>跳至</span>
+                        <input type="number" v-model.number="jumpPage" @keyup.enter="goToPage(jumpPage)" min="1" :max="totalPages">
+                        <button @click="goToPage(jumpPage)">GO</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -442,8 +537,9 @@
                     <h5 class="config-title"><i class="bi bi-briefcase"></i> 实习僧</h5>
                     <div class="config-grid">
                         <div class="config-field">
-                            <label>最大抓取页数</label>
-                            <input type="number" v-model.number="crawlerConfig.shixiseng.max_pages" min="1" max="50">
+                            <label>最大抓取数量</label>
+                            <input type="number" v-model.number="crawlerConfig.shixiseng.max_count" min="-1" max="10000">
+                            <span class="config-hint">-1 表示不限制，抓取直到没有更多数据</span>
                         </div>
                         <div class="config-field">
                             <label>最小延迟 (秒)</label>
@@ -468,8 +564,9 @@
                     <h5 class="config-title"><i class="bi bi-building"></i> 国家平台</h5>
                     <div class="config-grid">
                         <div class="config-field">
-                            <label>最大抓取页数</label>
-                            <input type="number" v-model.number="crawlerConfig.ncss.max_pages" min="1" max="50">
+                            <label>最大抓取数量</label>
+                            <input type="number" v-model.number="crawlerConfig.ncss.max_count" min="-1" max="10000">
+                            <span class="config-hint">-1 表示不限制，抓取直到没有更多数据</span>
                         </div>
                         <div class="config-field">
                             <label>最小延迟 (秒)</label>
@@ -494,6 +591,11 @@
                     <h5 class="config-title"><i class="bi bi-buildings"></i> 大厂官网</h5>
                     <div class="config-grid">
                         <div class="config-field">
+                            <label>最大抓取数量</label>
+                            <input type="number" v-model.number="crawlerConfig.website.max_count" min="-1" max="10000">
+                            <span class="config-hint">-1 表示不限制，抓取直到没有更多数据</span>
+                        </div>
+                        <div class="config-field">
                             <label>最小延迟 (秒)</label>
                             <input type="number" v-model.number="crawlerConfig.website.min_delay" min="0" max="30" step="0.5">
                         </div>
@@ -512,7 +614,7 @@
                     </div>
                 </div>
                 <div class="config-tip">
-                    <i class="bi bi-info-circle"></i> 修改后点击保存，下次启动爬虫时生效。增大延迟可降低被封风险，增大页数可获取更多数据。
+                    <i class="bi bi-info-circle"></i> 修改后点击保存，下次启动爬虫时生效。最大抓取数量设为 -1 表示不限制，会一直抓取直到没有更多数据。
                 </div>
             </div>
             <div class="modal-footer">
@@ -520,10 +622,151 @@
                 <button class="btn-save-config" @click="saveConfig"><i class="bi bi-check-lg"></i> 保存设置</button>
             </div>
         </div>
-    </div>
+        </div>
+
+        <!-- 定向抓取弹窗 -->
+        <div class="modal-overlay" v-if="showTargetedModal" @click.self="showTargetedModal = false">
+            <div class="modal-content modal-targeted">
+                <div class="modal-header">
+                    <h3><i class="bi bi-bullseye"></i> 定向抓取</h3>
+                    <button class="modal-close" @click="showTargetedModal = false">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- 数据源 -->
+                    <div class="targeted-section">
+                        <label class="targeted-label">数据源</label>
+                        <div class="source-options targeted-source">
+                            <label class="source-item" v-for="opt in crawlOptions" :key="opt.value"
+                                   :class="{ active: targetedSource === opt.value }">
+                                <input type="radio" v-model="targetedSource" :value="opt.value">
+                                <span class="source-radio"></span>
+                                <span>{{ opt.label }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 行业选择 -->
+                    <div class="targeted-section">
+                        <div class="targeted-label-row">
+                            <label class="targeted-label">行业选择</label>
+                            <button class="targeted-clear-btn" @click="clearTargetedIndustries()" v-show="targetedFilters.industries.length > 0">清除</button>
+                        </div>
+                        <div class="targeted-hint">实习僧不支持行业过滤，仅对国家平台和官网生效</div>
+                        <div class="targeted-checkbox-list">
+                            <label class="targeted-checkbox" v-for="ind in targetedIndustries" :key="ind"
+                                   :class="{ checked: isTargetedIndustrySelected(ind) }">
+                                <input type="checkbox" :checked="isTargetedIndustrySelected(ind)"
+                                       @change="toggleTargetedIndustry(ind)">
+                                <span>{{ ind }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 公司选择 -->
+                    <div class="targeted-section">
+                        <div class="targeted-label-row">
+                            <label class="targeted-label">公司选择</label>
+                            <span class="targeted-count" v-show="targetedFilters.companies.length > 0">已选 {{ targetedFilters.companies.length }} 家</span>
+                            <button class="targeted-clear-btn" @click="clearTargetedCompanies()" v-show="targetedFilters.companies.length > 0">清除</button>
+                        </div>
+                        <div class="targeted-hint">仅对大厂官网爬虫生效</div>
+                        <div class="targeted-search-box">
+                            <i class="bi bi-search"></i>
+                            <input type="text" v-model="targetedCompanySearch" placeholder="搜索公司...">
+                        </div>
+                        <div class="targeted-checkbox-list targeted-company-list">
+                            <label class="targeted-checkbox" v-for="name in filteredTargetedCompanies" :key="name"
+                                   :class="{ checked: isTargetedCompanySelected(name) }">
+                                <input type="checkbox" :checked="isTargetedCompanySelected(name)"
+                                       @change="toggleTargetedCompany(name)">
+                                <span>{{ name }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 地区选择 -->
+                    <div class="targeted-section">
+                        <div class="targeted-label-row">
+                            <label class="targeted-label">地区选择</label>
+                            <button class="targeted-clear-btn" @click="clearTargetedLocations()" v-show="targetedFilters.locations.length > 0">清除</button>
+                        </div>
+                        <div class="targeted-hint">对国家平台和实习僧生效（实习僧仅支持城市参数）</div>
+                        <div class="targeted-location-picker">
+                            <div class="location-trigger" @click="targetedLocationPickerOpen = !targetedLocationPickerOpen">
+                                <span v-if="targetedFilters.locations.length === 0" class="location-placeholder">选择地区...</span>
+                                <span v-else class="location-count">已选 {{ targetedFilters.locations.length }} 个地区</span>
+                                <i class="bi" :class="targetedLocationPickerOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                            </div>
+                            <div class="location-dropdown" v-if="targetedLocationPickerOpen">
+                                <div class="location-selected-tags" v-if="targetedFilters.locations.length > 0">
+                                    <span class="location-tag" v-for="loc in targetedFilters.locations" :key="loc" @click.stop="toggleTargetedLocation(loc)">
+                                        {{ loc }} <i class="bi bi-x"></i>
+                                    </span>
+                                </div>
+                                <div class="location-tree">
+                                    <div class="province-item" v-for="node in locationTree" :key="node.province">
+                                        <div class="province-header" @click="toggleTargetedProvince(node.province)">
+                                            <i class="bi expand-icon" :class="targetedExpandedProvinces.has(node.province) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                                            <label class="province-label" @click.stop>
+                                                <input type="checkbox"
+                                                       :checked="isTargetedProvinceSelected(node.province, node.cities)"
+                                                       @change="selectAllTargetedProvince(node.province, node.cities, node.provinceInDb)">
+                                                <span>{{ node.province }}</span>
+                                            </label>
+                                            <span class="province-count">{{ node.totalCount }}</span>
+                                        </div>
+                                        <div class="city-list" v-if="targetedExpandedProvinces.has(node.province)">
+                                            <label class="city-item" v-if="node.provinceInDb" @click.stop>
+                                                <input type="checkbox"
+                                                       :checked="isTargetedLocationSelected(node.province)"
+                                                       @change="toggleTargetedLocation(node.province)">
+                                                <span>{{ node.province }} (全部)</span>
+                                            </label>
+                                            <label class="city-item" v-for="city in node.cities" :key="city" @click.stop>
+                                                <input type="checkbox"
+                                                       :checked="isTargetedLocationSelected(city)"
+                                                       @change="toggleTargetedLocation(city)">
+                                                <span>{{ city }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="targeted-tip">
+                        <i class="bi bi-info-circle"></i>
+                        定向条件之间是 AND 关系（同时满足），同类条件内是 OR 关系（满足其一）。
+                        <br>不同数据源支持的过滤维度不同，不支持的条件会被忽略。
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-targeted-start" @click="startTargetedCrawl">
+                        <i class="bi bi-bullseye"></i> 开始定向抓取
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast 通知容器 -->
+        <div class="toast-container">
+            <div v-for="toast in toasts" :key="toast.id"
+                 class="toast-item" :class="[`toast-${toast.type}`, { 'toast-exit': !toast.visible }]">
+                <i class="bi" :class="{
+                    'bi-check-circle-fill': toast.type === 'success',
+                    'bi-x-circle-fill': toast.type === 'error',
+                    'bi-info-circle-fill': toast.type === 'info',
+                    'bi-exclamation-triangle-fill': toast.type === 'warning'
+                }"></i>
+                <span>{{ toast.message }}</span>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=3"></script>
 </body>
 </html>{% endraw %}

@@ -447,28 +447,34 @@ class BaseCrawler(ABC):
         return False
     
     @abstractmethod
-    def crawl(self):
+    def crawl(self, filters=None):
         """
         执行抓取任务的抽象方法
         子类必须实现此方法
-        
+
+        Args:
+            filters: 定向抓取过滤条件 dict，可选键: companies, industries, locations
+
         Returns:
             list: 抓取到的岗位数据列表
         """
         pass
-    
-    def run(self):
+
+    def run(self, filters=None):
         """
         运行爬虫的主入口方法
         负责启动浏览器、执行抓取、关闭浏览器
-        
+
+        Args:
+            filters: 定向抓取过滤条件 dict，可选键: companies, industries, locations
+
         Returns:
             list: 抓取到的岗位数据列表
         """
         self.jobs = []
         try:
             self.start_browser()
-            self.jobs = self.crawl()
+            self.jobs = self.crawl(filters=filters)
             logger.info(f"抓取完成，共获取 {len(self.jobs)} 条岗位数据")
         except Exception as e:
             logger.error(f"爬虫运行异常: {e}")

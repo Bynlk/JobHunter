@@ -309,16 +309,21 @@ def query_jobs(keyword=None, company=None, location=None, job_type=None,
         params = []
         
         if keyword:
-            conditions.append("(job_title LIKE ? OR job_desc LIKE ?)")
-            params.extend([f'%{keyword}%', f'%{keyword}%'])
+            conditions.append("(job_title LIKE ? OR company_name LIKE ? OR job_desc LIKE ?)")
+            params.extend([f'%{keyword}%', f'%{keyword}%', f'%{keyword}%'])
         
         if company:
             conditions.append("company_name LIKE ?")
             params.append(f'%{company}%')
         
         if location:
-            conditions.append("location LIKE ?")
-            params.append(f'%{location}%')
+            location_list = [loc.strip() for loc in location.split(',') if loc.strip()]
+            if location_list:
+                loc_conditions = []
+                for loc in location_list:
+                    loc_conditions.append("location LIKE ?")
+                    params.append(f'%{loc}%')
+                conditions.append(f"({' OR '.join(loc_conditions)})")
         
         if job_type and job_type != 'all':
             conditions.append("job_type = ?")
@@ -555,3 +560,17 @@ def get_all_industries():
         cursor.execute("SELECT DISTINCT industry FROM jobs WHERE industry != '' ORDER BY industry")
         rows = cursor.fetchall()
         return [row['industry'] for row in rows]
+
+
+def get_all_locations():
+    """
+    获取数据库中所有不重复的工作地点列表
+
+    Returns:
+        list: 地点名称列表
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT location FROM jobs WHERE location != '' ORDER BY location")
+        rows = cursor.fetchall()
+        return [row['location'] for row in rows]

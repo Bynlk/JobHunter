@@ -22,7 +22,7 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import FLASK_CONFIG, DEFAULT_PER_PAGE, MAX_PER_PAGE, EXPORT_CONFIG, BASE_DIR, SHIXISENG_CONFIG, NCSS_CONFIG, WEBSITE_CONFIG
-from models import init_database, query_jobs, get_job_by_id, get_all_companies, get_all_industries, get_stats, export_jobs, batch_insert_jobs, clear_all_jobs
+from models import init_database, query_jobs, get_job_by_id, get_all_companies, get_all_industries, get_all_locations, get_stats, export_jobs, batch_insert_jobs, clear_all_jobs
 
 # 配置日志
 _log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -96,24 +96,46 @@ def is_crawl_stopped():
         return crawl_status.get('stop_requested', False)
 
 
-def run_crawler_task(source):
+def run_crawler_task(source, filters=None):
     """
     在后台线程中执行爬虫任务
     爬虫每抓到一批数据就实时推送到数据库
 
     Args:
         source: 数据源类型 (shixiseng / ncss / websites / all)
+        filters: 定向抓取过滤条件 dict，可选键: companies, industries, locations
     """
     try:
+        # 构建进度描述
+        filter_desc = ''
+        if filters:
+            parts = []
+            if filters.get('companies'):
+                parts.append(f"公司({len(filters['companies'])}个)")
+            if filters.get('industries'):
+                parts.append(f"行业({len(filters['industries'])}个)")
+            if filters.get('locations'):
+                parts.append(f"地区({len(filters['locations'])}个)")
+            if parts:
+                filter_desc = f' [定向: {"+".join(parts)}]'
+
         update_crawl_status(
             status='running',
-            progress=f'正在启动 {source} 爬虫...',
+            progress=f'正在启动 {source} 爬虫{filter_desc}...',
             total_new=0,
             error_message='',
             source=source
         )
 
         total_new = [0]
+
+        # 获取最大抓取数量限制
+        max_count = -1
+        if source in ('shixiseng', 'ncss', 'website', 'api'):
+            max_count = runtime_config.get(source, {}).get('max_count', -1)
+        elif source == 'all':
+            # all 模式不限制，各子爬虫独立限制
+            max_count = -1
 
         def progress_callback(message, count):
             update_crawl_status(progress=message, total_new=total_new[0])
@@ -124,6 +146,11 @@ def run_crawler_task(source):
             total_new[0] += inserted
             update_crawl_status(total_new=total_new[0])
             logger.info(f"实时插入: 新增 {inserted} 条, 更新 {updated} 条, 累计 {total_new[0]} 条")
+            # 检查是否达到最大抓取数量
+            if max_count > 0 and total_new[0] >= max_count:
+                logger.info(f"已达到最大抓取数量 {max_count}，请求停止")
+                with crawl_status_lock:
+                    crawl_status['stop_requested'] = True
 
         if source in ('shixiseng', 'all') and not is_crawl_stopped():
             update_crawl_status(progress='正在抓取实习僧数据...')
@@ -133,7 +160,7 @@ def run_crawler_task(source):
                 crawler.set_progress_callback(progress_callback)
                 crawler.set_jobs_callback(on_jobs_found)
                 crawler.set_stop_check(is_crawl_stopped)
-                jobs = crawler.run()
+                jobs = crawler.run(filters=filters)
                 # 获取详情页的薪资和描述
                 if jobs and not is_crawl_stopped():
                     update_crawl_status(progress='实习僧 - 正在获取岗位详情...')
@@ -155,7 +182,7 @@ def run_crawler_task(source):
                 crawler.set_progress_callback(progress_callback)
                 crawler.set_jobs_callback(on_jobs_found)
                 crawler.set_stop_check(is_crawl_stopped)
-                jobs = crawler.run()
+                jobs = crawler.run(filters=filters)
                 logger.info(f"国家平台爬虫结束，共处理 {len(jobs)} 条数据")
             except Exception as e:
                 logger.error(f"国家平台爬虫异常: {e}")
@@ -169,11 +196,25 @@ def run_crawler_task(source):
                 crawler.set_progress_callback(progress_callback)
                 crawler.set_jobs_callback(on_jobs_found)
                 crawler.set_stop_check(is_crawl_stopped)
-                jobs = crawler.run()
+                jobs = crawler.run(filters=filters)
                 logger.info(f"大厂官网爬虫结束，共处理 {len(jobs)} 条数据")
             except Exception as e:
                 logger.error(f"大厂官网爬虫异常: {e}")
                 update_crawl_status(progress=f'大厂官网抓取出错: {str(e)}')
+
+        if source in ('api', 'all') and not is_crawl_stopped():
+            update_crawl_status(progress='正在通过 API 抓取大厂数据...')
+            try:
+                from crawler.api_crawler import ApiCrawler
+                crawler = ApiCrawler()
+                crawler.set_progress_callback(progress_callback)
+                crawler.set_jobs_callback(on_jobs_found)
+                crawler.set_stop_check(is_crawl_stopped)
+                jobs = crawler.run(filters=filters)
+                logger.info(f"API 爬虫结束，共处理 {len(jobs)} 条数据")
+            except Exception as e:
+                logger.error(f"API 爬虫异常: {e}")
+                update_crawl_status(progress=f'API 抓取出错: {str(e)}')
 
         if is_crawl_stopped():
             update_crawl_status(
@@ -318,12 +359,25 @@ def api_start_crawl():
     try:
         data = request.get_json() or {}
         source = data.get('source', 'all')
-        
+        filters = data.get('filters', None)
+
         # 验证数据源参数
-        valid_sources = ('shixiseng', 'ncss', 'websites', 'all')
+        valid_sources = ('shixiseng', 'ncss', 'websites', 'api', 'all')
         if source not in valid_sources:
             return jsonify({'error': f'无效的数据源: {source}，有效值: {valid_sources}'}), 400
-        
+
+        # 验证 filters 结构
+        if filters:
+            if not isinstance(filters, dict):
+                return jsonify({'error': 'filters 必须是字典类型'}), 400
+            # 只保留非空列表
+            filters = {
+                k: v for k, v in filters.items()
+                if k in ('companies', 'industries', 'locations') and isinstance(v, list) and v
+            }
+            if not filters:
+                filters = None
+
         # 检查是否已有任务在运行，并原子性地设置为运行中
         task_id = str(uuid.uuid4())
         with crawl_status_lock:
@@ -336,9 +390,9 @@ def api_start_crawl():
             crawl_status['task_id'] = task_id
             crawl_status['source'] = source
             crawl_status['stop_requested'] = False
-        
+
         # 在后台线程中执行爬虫任务
-        thread = threading.Thread(target=run_crawler_task, args=(source,), daemon=True)
+        thread = threading.Thread(target=run_crawler_task, args=(source, filters), daemon=True)
         thread.start()
         
         logger.info(f"爬虫任务已启动: task_id={task_id}, source={source}")
@@ -383,6 +437,34 @@ def api_stop_crawl():
         crawl_status['progress'] = '正在停止...'
     logger.info("收到停止爬虫请求")
     return jsonify({'status': 'stopping'})
+
+
+@app.route('/api/crawl/industries', methods=['GET'])
+def api_get_crawl_industries():
+    """获取 company_urls.json 中所有不重复的行业列表（用于定向抓取弹窗）"""
+    try:
+        config_file = os.path.join(BASE_DIR, 'config', 'company_urls.json')
+        with open(config_file, 'r', encoding='utf-8') as f:
+            companies = json.load(f)
+        industries = sorted(set(c.get('industry', '') for c in companies if c.get('industry')))
+        return jsonify(industries)
+    except Exception as e:
+        logger.error(f"获取行业列表失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/crawl/companies', methods=['GET'])
+def api_get_crawl_companies():
+    """获取 company_urls.json 中所有公司名称列表（用于定向抓取弹窗）"""
+    try:
+        config_file = os.path.join(BASE_DIR, 'config', 'company_urls.json')
+        with open(config_file, 'r', encoding='utf-8') as f:
+            companies = json.load(f)
+        names = sorted(set(c.get('name', '') for c in companies if c.get('name')))
+        return jsonify(names)
+    except Exception as e:
+        logger.error(f"获取公司列表失败: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/export', methods=['GET'])
@@ -572,6 +654,17 @@ def api_get_industries():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/locations', methods=['GET'])
+def api_get_locations():
+    """获取所有不重复的工作地点列表"""
+    try:
+        locations = get_all_locations()
+        return jsonify(locations)
+    except Exception as e:
+        logger.error(f"获取地点列表失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/stats', methods=['GET'])
 def api_get_stats():
     """
@@ -596,6 +689,7 @@ def api_get_config():
     return jsonify({
         'shixiseng': {
             'max_pages': runtime_config['shixiseng']['max_pages'],
+            'max_count': runtime_config['shixiseng'].get('max_count', -1),
             'min_delay': runtime_config['shixiseng']['min_delay'],
             'max_delay': runtime_config['shixiseng']['max_delay'],
             'max_retries': runtime_config['shixiseng']['max_retries'],
@@ -603,12 +697,14 @@ def api_get_config():
         },
         'ncss': {
             'max_pages': runtime_config['ncss']['max_pages'],
+            'max_count': runtime_config['ncss'].get('max_count', -1),
             'min_delay': runtime_config['ncss']['min_delay'],
             'max_delay': runtime_config['ncss']['max_delay'],
             'max_retries': runtime_config['ncss']['max_retries'],
             'timeout': runtime_config['ncss']['timeout'],
         },
         'website': {
+            'max_count': runtime_config['website'].get('max_count', -1),
             'min_delay': runtime_config['website']['min_delay'],
             'max_delay': runtime_config['website']['max_delay'],
             'max_retries': runtime_config['website']['max_retries'],
@@ -626,6 +722,7 @@ def api_update_config():
         # 配置项的类型和范围校验
         _config_rules = {
             'max_pages': (int, 1, 100),
+            'max_count': (int, -1, 10000),
             'min_delay': ((int, float), 0, 60),
             'max_delay': ((int, float), 0, 120),
             'max_retries': (int, 0, 10),
@@ -634,7 +731,7 @@ def api_update_config():
 
         for source in ('shixiseng', 'ncss', 'website'):
             if source in data:
-                for key in ('max_pages', 'min_delay', 'max_delay', 'max_retries', 'timeout'):
+                for key in ('max_pages', 'max_count', 'min_delay', 'max_delay', 'max_retries', 'timeout'):
                     if key in data[source] and key in runtime_config[source]:
                         val = data[source][key]
                         rule = _config_rules[key]

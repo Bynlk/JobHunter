@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 
 from .base_crawler import BaseCrawler
-from config import NCSS_CONFIG, SOURCE_NCSS
+from config import NCSS_CONFIG, SOURCE_NCSS, NCSS_AREA_CODES, NCSS_INDUSTRY_CODES
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +20,23 @@ class NCSSCrawler(BaseCrawler):
         self.base_url = NCSS_CONFIG['base_url']
         self.api_url = 'https://www.ncss.cn/student/jobs/jobslist/ajax/'
 
-    def crawl(self):
+    def crawl(self, filters=None):
         """
         通过 NCSS 的 JSON API 抓取岗位数据
         每页获取后立即推送
+
+        Args:
+            filters: 定向抓取过滤条件 dict，可选键: companies, industries, locations
         """
         all_jobs = []
 
         logger.info("开始抓取国家大学生就业服务平台")
         self.report_progress("国家平台 - 正在启动浏览器...")
+
+        # 解析过滤条件为 NCSS API 参数
+        filter_params = self._build_filter_params(filters)
+        if filters:
+            logger.info(f"定向抓取条件: {filter_params}")
 
         # 需要先访问页面获取 session cookies
         page = self.create_page()
@@ -47,9 +55,8 @@ class NCSSCrawler(BaseCrawler):
                 self.report_progress(f"国家平台 - 第{page_num}页", len(all_jobs))
 
                 try:
-                    # 构建 URL 参数，避免 JS 注入
                     ts = int(datetime.now().timestamp() * 1000)
-                    api_url = f"{self.api_url}?jobType=&areaCode=&jobName=&monthPay=&industrySectors=&property=&categoryCode=&memberLevel=&recruitType=&offset={offset}&limit={limit}&keyUnits=&degreeCode=&sourcesName=0&sourcesType=&_={ts}"
+                    api_url = f"{self.api_url}?jobType={filter_params['jobType']}&areaCode={filter_params['areaCode']}&jobName={filter_params['jobName']}&monthPay=&industrySectors={filter_params['industrySectors']}&property=&categoryCode=&memberLevel=&recruitType=&offset={offset}&limit={limit}&keyUnits={filter_params['keyUnits']}&degreeCode=&sourcesName=0&sourcesType=&_={ts}"
                     result = page.evaluate('async (url) => { const resp = await fetch(url); return await resp.json(); }', api_url)
 
                     if not result or not result.get('data') or not result['data'].get('list'):
@@ -135,6 +142,49 @@ class NCSSCrawler(BaseCrawler):
                 self.random_delay(1, 2)
             except Exception as e:
                 logger.debug(f"获取详情失败: {job.get('job_url')} - {e}")
+
+    def _build_filter_params(self, filters):
+        """
+        将前端传来的过滤条件转换为 NCSS API 参数
+
+        Args:
+            filters: dict，可选键: companies, industries, locations
+
+        Returns:
+            dict: NCSS API 参数
+        """
+        params = {
+            'areaCode': '',
+            'industrySectors': '',
+            'keyUnits': '',
+            'jobName': '',
+            'jobType': '',
+        }
+        if not filters:
+            return params
+
+        # 地区: 取第一个匹配的 areaCode（NCSS 只支持单个地区）
+        if filters.get('locations'):
+            for loc in filters['locations']:
+                code = NCSS_AREA_CODES.get(loc)
+                if code:
+                    params['areaCode'] = code
+                    break
+
+        # 行业: 取第一个匹配的 industrySectors 编码
+        if filters.get('industries'):
+            for ind in filters['industries']:
+                code = NCSS_INDUSTRY_CODES.get(ind)
+                if code:
+                    params['industrySectors'] = code
+                    break
+
+        # 公司: NCSS 的 keyUnits 参数接受公司名关键词
+        if filters.get('companies'):
+            # 用第一个公司名作为搜索关键词
+            params['keyUnits'] = filters['companies'][0]
+
+        return params
 
     def _normalize_job(self, item):
         """

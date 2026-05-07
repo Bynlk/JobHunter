@@ -1,0 +1,1792 @@
+[
+  {
+    "name": "阿里巴巴",
+    "url": "https://campus-talent.alibaba.com/campus/position",
+    "apis_found": 3,
+    "apis": [
+      {
+        "url": "https://campus-talent.alibaba.com/position/search?_csrf=45238adc-1a2d-478a-a4ee-dcce3ee7ef16",
+        "method": "POST",
+        "post_data": "{\"batchId\":100000540002,\"pageIndex\":1,\"pageSize\":10,\"channel\":\"campus_group_official_site\",\"language\":\"zh\"}",
+        "reason": "数据包含 5 个岗位关键词",
+        "data_path": "content.datas",
+        "total_count": 482,
+        "sample_fields": [
+          "trackId",
+          "positionUrl",
+          "bucket",
+          "id",
+          "name",
+          "status",
+          "categories",
+          "publishTime",
+          "graduationTime",
+          "modifyTime",
+          "workLocations",
+          "interviewLocations",
+          "regionEnNameMap",
+          "technologyNameIdMap",
+          "tags",
+          "requirement",
+          "description",
+          "experience",
+          "degree",
+          "department"
+        ],
+        "field_mapping": {
+          "job_title": "name",
+          "location": "workLocations",
+          "education": "degree",
+          "job_desc": "description",
+          "job_url": "positionUrl",
+          "publish_date": "publishTime"
+        }
+      },
+      {
+        "url": "https://campus-talent.alibaba.com/searchCondition/list?_csrf=45238adc-1a2d-478a-a4ee-dcce3ee7ef16",
+        "method": "POST",
+        "post_data": "{\"batchId\":100000540002,\"channel\":\"campus_group_official_site\",\"language\":\"zh\"}",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus-talent.alibaba.com/position/search?_csrf=45238adc-1a2d-478a-a4ee-dcce3ee7ef16",
+        "method": "POST",
+        "post_data": "{\"batchId\":100000540002,\"pageIndex\":1,\"pageSize\":10,\"customDeptCode\":\"\",\"channel\":\"campus_group_official_site\",\"language\":\"zh\"}",
+        "reason": "数据包含 5 个岗位关键词",
+        "data_path": "content.datas",
+        "total_count": 482,
+        "sample_fields": [
+          "trackId",
+          "positionUrl",
+          "bucket",
+          "id",
+          "name",
+          "status",
+          "categories",
+          "publishTime",
+          "graduationTime",
+          "modifyTime",
+          "workLocations",
+          "interviewLocations",
+          "regionEnNameMap",
+          "technologyNameIdMap",
+          "tags",
+          "requirement",
+          "description",
+          "experience",
+          "degree",
+          "department"
+        ],
+        "field_mapping": {
+          "job_title": "name",
+          "location": "workLocations",
+          "education": "degree",
+          "job_desc": "description",
+          "job_url": "positionUrl",
+          "publish_date": "publishTime"
+        }
+      }
+    ]
+  },
+  {
+    "name": "腾讯",
+    "url": "https://join.qq.com/post.html?query=",
+    "apis_found": 2,
+    "apis": [
+      {
+        "url": "https://join.qq.com/api/v1/position/getPositionFamily?timestamp=1778150730286",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://join.qq.com/api/v1/position/searchPosition?timestamp=1778150730352",
+        "method": "POST",
+        "post_data": "{\"projectIdList\":[],\"projectMappingIdList\":[2,104,1,14,20,5],\"keyword\":\"\",\"bgList\":[],\"workCountryType\":0,\"workCityList\":[],\"recruitCityList\":[],\"positionFidList\":[],\"pageIndex\":1,\"pageSize\":10}",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "字节跳动",
+    "url": "https://jobs.bytedance.com/campus/position",
+    "apis_found": 3,
+    "apis": [
+      {
+        "url": "https://starling.zijieapi.com/check_and_get_text/aff8e570233711eb96690bb0655fe40d/test/throne-biz?lang=zh,en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 11 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://starling.zijieapi.com/check_and_get_text/aff8e570233711eb96690bb0655fe40d/test/throne-biz?lang=zh,en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 11 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://jobs.bytedance.com/api/v1/search/job/posts?keyword=&limit=10&offset=0&job_category_id_list=&tag_id_list=&location_code_list=&subject_id_list=&recruitment_id_list=&portal_type=3&job_function_id_list=&storefront_id_list=&portal_entrance=1&_signature=ypQaggAAAAAdcVhx7xKWlsqUGpAAKNy",
+        "method": "POST",
+        "post_data": "{\"keyword\":\"\",\"limit\":10,\"offset\":0,\"job_category_id_list\":[],\"tag_id_list\":[],\"location_code_list\":[],\"subject_id_list\":[],\"recruitment_id_list\":[],\"portal_type\":3,\"job_function_id_list\":[],\"storefront_id_list\":[],\"portal_entrance\":1}",
+        "reason": "数据包含 9 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "百度",
+    "url": "https://talent.baidu.com/jobs/list",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "美团",
+    "url": "https://zhaopin.meituan.com/job-list",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://zhaopin.meituan.com/api/official/job/getJobList",
+        "method": "POST",
+        "post_data": "{\"page\":{\"pageNo\":1,\"pageSize\":10},\"jobShareType\":\"1\",\"keywords\":\"\",\"cityList\":[],\"department\":[],\"jfJgList\":[],\"jobType\":[{\"code\":\"3\",\"subCode\":[]}],\"typeCode\":[],\"specialCode\":[],\"u_query_id\":\"6d2176916d786e987f7ba24c11f5deb1\",\"r_query_id\":\"177815075531691296645\"}",
+        "reason": "数据包含 4 个岗位关键词",
+        "data_path": "data.list",
+        "total_count": 10,
+        "sample_fields": [
+          "jobUnionId",
+          "name",
+          "projectId",
+          "projectName",
+          "jobType",
+          "jobSpecialCode",
+          "jobSource",
+          "jobStatus",
+          "jobFamily",
+          "jobFamilyGroup",
+          "cityList",
+          "workYear",
+          "department",
+          "desc",
+          "departmentIntro",
+          "jobDuty",
+          "jobRequirement",
+          "precedence",
+          "highLight",
+          "otherInfo"
+        ],
+        "field_mapping": {
+          "job_title": "name",
+          "job_desc": "desc"
+        }
+      }
+    ]
+  },
+  {
+    "name": "京东",
+    "url": "https://campus.jd.com/#/jobs",
+    "apis_found": 2,
+    "apis": [
+      {
+        "url": "https://campus.jd.com/api/wx/position/page?type=present",
+        "method": "POST",
+        "post_data": "{\"pageSize\":10,\"pageIndex\":0,\"parameter\":{\"positionName\":\"\",\"planIdList\":[],\"jobDirectionCodeList\":[],\"workCityCodeList\":[],\"positionDeptList\":[]}}",
+        "reason": "数据包含 5 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.jd.com/api/wx/position/dict?type=present",
+        "method": "POST",
+        "post_data": "[]",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "拼多多",
+    "url": "https://jobs.pinduoduo.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "快手",
+    "url": "https://zhaopin.kuaishou.cn/recruit/e/#/campus/job-list",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "小红书",
+    "url": "https://job.xiaohongshu.com/jobs",
+    "apis_found": 5,
+    "apis": [
+      {
+        "url": "https://job.xiaohongshu.com/websiterecruit/common/findEnumList",
+        "method": "POST",
+        "post_data": "[]",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://job.xiaohongshu.com/websiterecruit/common/aggEnumList",
+        "method": "POST",
+        "post_data": "{\"applyType\":\"social\",\"typeList\":[\"JobTypeEnum\",\"PositionWorkplaceEnum\"]}",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://job.xiaohongshu.com/websiterecruit/position/pageQueryPosition",
+        "method": "POST",
+        "post_data": "{\"recruitType\":\"social\",\"positionName\":\"\",\"pageNum\":1,\"pageSize\":10}",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "data.list",
+        "total_count": 804,
+        "sample_fields": [
+          "positionId",
+          "positionName",
+          "amountInNeed",
+          "workplaceIds",
+          "workplace",
+          "publishTime",
+          "recruitStatus",
+          "duty",
+          "qualification",
+          "jobType",
+          "jobProjectName",
+          "labels"
+        ],
+        "field_mapping": {
+          "job_title": "positionName",
+          "publish_date": "publishTime"
+        }
+      },
+      {
+        "url": "https://as.xiaohongshu.com/api/sec/v1/scripting",
+        "method": "POST",
+        "post_data": "{\"callFrom\":\"web\",\"callback\":\"seccallback\"}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://efficiency.xiaohongshu.com/api/apollo-proxy/get",
+        "method": "POST",
+        "post_data": "{\"namespace\":\"recruit\",\"keys\":[\"websiteSocial\",\"websiteCampus\",\"websiteRedStar\",\"websiteCommon\",\"websiteLanding\"],\"options\":{\"env\":\"prod\"}}",
+        "reason": "数据包含 4 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "哔哩哔哩",
+    "url": "https://jobs.bilibili.com",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://api.bilibili.com/x/kv-frontend/namespace/data?appKey=125.29&nscode=0",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "网易",
+    "url": "https://campus.163.com/web/job/list",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "小米",
+    "url": "https://hr.xiaomi.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "滴滴",
+    "url": "https://talent.didiglobal.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "蚂蚁集团",
+    "url": "https://talent.ant.group/off-campus/position-list",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "携程",
+    "url": "https://careers.ctrip.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "联想",
+    "url": "https://talent.lenovo.com.cn/campus",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://talent.lenovo.com.cn/gateway/sysDict/all",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 6 个岗位关键词",
+        "data_path": "result",
+        "total_count": 76,
+        "sample_fields": [
+          "id",
+          "parentId",
+          "dictCode",
+          "dictName",
+          "dictValue",
+          "dictSort",
+          "remark",
+          "dictEnName",
+          "isHide",
+          "children"
+        ],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "米哈游",
+    "url": "https://hr.mihoyo.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "华为",
+    "url": "https://career.huawei.com/reccampportal/portal5/campus-recruitment.html",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中兴通讯",
+    "url": "https://job.zte.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "科大讯飞",
+    "url": "https://iflytek.zhiye.com/jobs",
+    "apis_found": 3,
+    "apis": [
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetSpecialJobAdList?_timestamp=2701778150883464&category=0&type=1&langType=zh_CN",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetJobAdPageList",
+        "method": "POST",
+        "post_data": "{\"PageIndex\":0,\"PageSize\":20,\"KeyWords\":\"\",\"SpecialType\":0,\"PortalId\":\"\",\"DisplayFields\":[\"Category\",\"Kind\",\"LocId\",\"ClassificationOne\",\"WorkWeChatQrCode\"]}",
+        "reason": "数据包含 4 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetSpecialJobAdList?_timestamp=7911778150883788&category=0&type=1&langType=zh_CN",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "网易游戏雷火",
+    "url": "https://leihuo.163.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "深信服",
+    "url": "https://www.sangfor.com.cn",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "奇安信",
+    "url": "https://www.qianxin.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "VIVO",
+    "url": "https://www.vivo.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "OPPO",
+    "url": "https://www.oppo.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "荣耀",
+    "url": "https://www.honor.com",
+    "apis_found": 2,
+    "apis": [
+      {
+        "url": "https://retail.hihonor.com/survey/base/report?lang=zh_CN",
+        "method": "POST",
+        "post_data": "{\"extend\":\"{\\\"mktNPSurl\\\":\\\"https://www.honor.com/cn/\\\"}\",\"lang\":\"zh_CN\",\"surveyCode\":\"Q2024070100080\",\"questionnaireId\":\"\",\"mockAnswer\":false,\"reportCode\":\"\",\"preview\":false}",
+        "reason": "数据包含 6 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://retail.hihonor.com/survey/base/report/detail?lang=zh_CN",
+        "method": "POST",
+        "post_data": "{\"extend\":\"{\\\"mktNPSurl\\\":\\\"https://www.honor.com/cn/\\\"}\",\"lang\":\"zh_CN\",\"surveyCode\":\"Q2024070100080\",\"questionnaireId\":\"\"}",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "大疆",
+    "url": "https://we.dji.com/zh-CN/campus/position",
+    "apis_found": 3,
+    "apis": [
+      {
+        "url": "https://we.dji.com/hire_front/api/common/position/queryPositionCardList",
+        "method": "POST",
+        "post_data": "{\"currentPage\":1,\"keyWord\":\"\",\"pageSize\":10,\"recruitmentTypes\":[],\"cityList\":[],\"teamList\":[],\"positionCategoryList\":[],\"schoolFlag\":\"Y\"}",
+        "reason": "数据包含 6 个岗位关键词",
+        "data_path": "data.datas",
+        "total_count": 22,
+        "sample_fields": [
+          "overseaFlag",
+          "locationEnDescription",
+          "jobTitle",
+          "createdate",
+          "proDescription",
+          "enShowStatus",
+          "jdOpenIdentity",
+          "categoryDescription",
+          "claEnDescription",
+          "categoryEnDescription",
+          "positionOtherStatus",
+          "recommendFlag",
+          "kind",
+          "hotFlag",
+          "jobId",
+          "modifiedby",
+          "claDescription",
+          "jobStatus",
+          "chargeHr",
+          "locationDescription"
+        ],
+        "field_mapping": {
+          "job_title": "jobTitle",
+          "job_desc": "requirement"
+        }
+      },
+      {
+        "url": "https://we.dji.com/hire_front/api/common/position/queryUsingAndOldCity/Y",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://we.dji.com/hire_front/api/common/position/getAllPositionCategory",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "data",
+        "total_count": 8,
+        "sample_fields": [
+          "id",
+          "code",
+          "parentID",
+          "description",
+          "enDescription",
+          "children"
+        ],
+        "field_mapping": {
+          "job_desc": "description"
+        }
+      }
+    ]
+  },
+  {
+    "name": "海康威视",
+    "url": "https://campus.hikvision.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "金山办公",
+    "url": "https://www.wps.cn",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://www.kdocs.cn/kdg/api/v1/template/wps_official/VqJhVe91",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "SHEIN",
+    "url": "https://www.shein.com/careers",
+    "apis_found": 11,
+    "apis": [
+      {
+        "url": "https://us.shein.com/bff-api/user-api/privacy-banner-api/get_private_banner_gpc",
+        "method": "POST",
+        "post_data": "{\"brand\":\"7\",\"platform\":\"\",\"domain\":\"us.shein.com\",\"siteUid\":\"us\",\"language\":\"en\",\"sa\":\"FFFFE266_8ED4_432F_B00D_D02AF334E82A\"}",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user-api/privacy-banner-api/get_private_banner",
+        "method": "POST",
+        "post_data": "{\"brand\":7,\"domain\":\"us.shein.com\",\"siteUid\":\"us\",\"language\":\"en\"}",
+        "reason": "数据包含 5 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/ccc/common_component?_ver=1.1.8&_lang=en&cccPageType=otherListEmptyPage",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user-api/popup/quick_register?_ver=1.1.8&_lang=en",
+        "method": "POST",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user-api/popup/ip_jump?_ver=1.1.8&_lang=en",
+        "method": "POST",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/ticket/robot_customer_chan?_ver=1.1.8&_lang=en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user/currency/list?_ver=1.1.8&_lang=en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/ccc/bottom/policy/aggregation?_ver=1.1.8&_lang=en&channel_id=23&page_type=1",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user/address/whole_country_list?_ver=1.1.8&_lang=en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user-api/faq/get_info?_ver=1.1.8&_lang=en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/ccc/nav/right?_ver=1.1.8&_lang=en&channelType=10&id=777407&leftCateName=New+In",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "招商银行",
+    "url": "https://career.cmbchina.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "建设银行",
+    "url": "https://job.ccb.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "工商银行",
+    "url": "https://job.icbc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国银行",
+    "url": "https://campus.bank-of-china.com/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "邮储银行",
+    "url": "https://zhaopin.psbc.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "交通银行",
+    "url": "https://job.bankcomm.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国平安",
+    "url": "https://campus.pingan.com/",
+    "apis_found": 6,
+    "apis": [
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":3}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":4}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":7}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":6}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":5}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":8}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "中国人寿",
+    "url": "https://career.chinalife.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "汇丰科技",
+    "url": "https://www.hsbc.com/careers",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "蔚来",
+    "url": "https://nio.jobs.f.mioffice.cn/jobs",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "理想汽车",
+    "url": "https://talent.lixiang.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "比亚迪",
+    "url": "https://job.byd.com/portal/pc/#/home",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "特斯拉中国",
+    "url": "https://www.tesla.cn/careers",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "吉利汽车",
+    "url": "https://www.geely.com",
+    "apis_found": 3,
+    "apis": [
+      {
+        "url": "https://www.tesla.cn/api/tesla/header/v1_1/careers",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://www.tesla.cn/api/tesla/header/v1_1/careers",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://www.geely.com/api/geely/galaxy/common/getArea",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "data",
+        "total_count": 34,
+        "sample_fields": [
+          "regionId",
+          "parentRegionId",
+          "regionName",
+          "businessDepartment",
+          "region"
+        ],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "宁德时代",
+    "url": "https://www.catl.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "国家电网",
+    "url": "https://zhaopin.sgcc.com.cn/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中石油",
+    "url": "https://zhaopin.cnpc.com.cn/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中石化",
+    "url": "https://job.sinopec.com/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国电信",
+    "url": "https://www.chinatelecom.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国移动",
+    "url": "https://campus.chinamobile.com/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国联通",
+    "url": "https://www.chinaunicom.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "顺丰",
+    "url": "https://www.sf-express.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中建集团",
+    "url": "https://recruit.cscec.com/recruit#/",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://recruit.cscec.com/api/language/get_language?lang=zh_cn",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 9 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "中国电建",
+    "url": "https://www.powerchina.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国能建",
+    "url": "https://www.ceec.net.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国铁建",
+    "url": "https://www.crcc.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国船舶",
+    "url": "https://www.cssc.net.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国兵器",
+    "url": "https://www.norincogroup.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国电子",
+    "url": "https://www.cec.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国华能",
+    "url": "https://www.chng.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国大唐",
+    "url": "https://www.china-cdt.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国华电",
+    "url": "https://www.chd.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "华润集团",
+    "url": "https://www.crc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国中化",
+    "url": "https://www.sinochem.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国五矿",
+    "url": "https://www.minmetals.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国宝武",
+    "url": "https://www.baowugroup.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国铝业",
+    "url": "https://www.chalco.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国建材",
+    "url": "https://www.cnbm.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国黄金",
+    "url": "https://www.chinagoldgroup.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国广核",
+    "url": "https://www.cgnpc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国核工业",
+    "url": "https://www.cnnc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "招商局集团",
+    "url": "https://www.cmhk.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中信集团",
+    "url": "https://www.citic.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "美的集团",
+    "url": "https://www.midea.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "京东方",
+    "url": "https://www.boe.com/campus",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://www.boe.com/v1/zcms-api/web/getWebHeader",
+        "method": "POST",
+        "post_data": "{\"displayStatus\":2,\"type\":1,\"networkId\":1,\"language\":1,\"onlineStatus\":true}",
+        "reason": "数据包含 5 个岗位关键词",
+        "data_path": "data",
+        "total_count": 11,
+        "sample_fields": [
+          "nodeId",
+          "node",
+          "parentId",
+          "childNode"
+        ],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "网易",
+    "url": "https://campus.163.com/web/job/list",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "小米",
+    "url": "https://hr.xiaomi.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "滴滴",
+    "url": "https://talent.didiglobal.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "蚂蚁集团",
+    "url": "https://talent.ant.group/off-campus/position-list",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "携程",
+    "url": "https://careers.ctrip.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "联想",
+    "url": "https://talent.lenovo.com.cn/campus",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://talent.lenovo.com.cn/gateway/sysDict/all",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 6 个岗位关键词",
+        "data_path": "result",
+        "total_count": 76,
+        "sample_fields": [
+          "id",
+          "parentId",
+          "dictCode",
+          "dictName",
+          "dictValue",
+          "dictSort",
+          "remark",
+          "dictEnName",
+          "isHide",
+          "children"
+        ],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "米哈游",
+    "url": "https://hr.mihoyo.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "华为",
+    "url": "https://career.huawei.com/reccampportal/portal5/campus-recruitment.html",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中兴通讯",
+    "url": "https://job.zte.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "科大讯飞",
+    "url": "https://iflytek.zhiye.com/jobs",
+    "apis_found": 4,
+    "apis": [
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetJobAdPageList",
+        "method": "POST",
+        "post_data": "{\"PageIndex\":0,\"PageSize\":20,\"KeyWords\":\"\",\"SpecialType\":0,\"PortalId\":\"\",\"DisplayFields\":[\"Category\",\"Kind\",\"LocId\",\"ClassificationOne\",\"WorkWeChatQrCode\"]}",
+        "reason": "数据包含 4 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetSpecialJobAdList?_timestamp=4921778151469593&category=0&type=1&langType=zh_CN",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetSpecialJobAdList?_timestamp=1461778151469608&category=0&type=1&langType=zh_CN",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://iflytek.zhiye.com/api/Jobad/GetSpecialJobAdList?_timestamp=5051778151469837&category=0&type=1&langType=zh_CN",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "深信服",
+    "url": "https://www.sangfor.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "奇安信",
+    "url": "https://www.qianxin.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "VIVO",
+    "url": "https://www.vivo.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "OPPO",
+    "url": "https://www.oppo.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "荣耀",
+    "url": "https://www.honor.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "大疆",
+    "url": "https://we.dji.com/zh-CN/campus/position",
+    "apis_found": 3,
+    "apis": [
+      {
+        "url": "https://we.dji.com/hire_front/api/common/position/queryUsingAndOldCity/Y",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://we.dji.com/hire_front/api/common/position/queryPositionCardList",
+        "method": "POST",
+        "post_data": "{\"currentPage\":1,\"keyWord\":\"\",\"pageSize\":10,\"recruitmentTypes\":[],\"cityList\":[],\"teamList\":[],\"positionCategoryList\":[],\"schoolFlag\":\"Y\"}",
+        "reason": "数据包含 6 个岗位关键词",
+        "data_path": "data.datas",
+        "total_count": 22,
+        "sample_fields": [
+          "overseaFlag",
+          "locationEnDescription",
+          "jobTitle",
+          "createdate",
+          "proDescription",
+          "enShowStatus",
+          "jdOpenIdentity",
+          "categoryDescription",
+          "claEnDescription",
+          "categoryEnDescription",
+          "positionOtherStatus",
+          "recommendFlag",
+          "kind",
+          "hotFlag",
+          "jobId",
+          "modifiedby",
+          "claDescription",
+          "jobStatus",
+          "chargeHr",
+          "locationDescription"
+        ],
+        "field_mapping": {
+          "job_title": "jobTitle",
+          "job_desc": "requirement"
+        }
+      },
+      {
+        "url": "https://we.dji.com/hire_front/api/common/position/getAllPositionCategory",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "data",
+        "total_count": 8,
+        "sample_fields": [
+          "id",
+          "code",
+          "parentID",
+          "description",
+          "enDescription",
+          "children"
+        ],
+        "field_mapping": {
+          "job_desc": "description"
+        }
+      }
+    ]
+  },
+  {
+    "name": "海康威视",
+    "url": "https://campus.hikvision.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "金山办公",
+    "url": "https://www.wps.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "SHEIN",
+    "url": "https://www.shein.com/careers",
+    "apis_found": 6,
+    "apis": [
+      {
+        "url": "https://us.shein.com/bff-api/ccc/common_component?_ver=1.1.8&_lang=en&cccPageType=otherListEmptyPage",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user-api/popup/ip_jump?_ver=1.1.8&_lang=en",
+        "method": "POST",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user-api/popup/quick_register?_ver=1.1.8&_lang=en",
+        "method": "POST",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/product/recommend/ccc_component_common?_ver=1.1.8&_lang=en",
+        "method": "POST",
+        "post_data": "cateId=&cateType=&cartRecommendTab=&cccPageType=otherListEmptyPage&columnOfRows=2&json_rule_id=%7B%22flow_ctrl_shop%22%3A%22scc_rule%3Av30734%22%2C%22rec_tf_model_item_country_mapping_country%22%3A%22%22%2C%22flow_ctrl_original_duizhao%22%3A%22scc_rule%3Av12497%22%2C%22rec_flow_enable_10269%22%3A%221%22%2C%22rec_flow_enable_10104%22%3A%221%22%2C%22tj_component_match%22%3A%22%22%2C%22rec_flow_enable_10188%22%3A%221%22%2C%22tj_changwei_similar_2%22%3A%22%22%2C%22flow_ctrl_D_failed%22%3A%22scc_rule%3Av6750%22%2C%22fc_group12%22%3A%22scc_rule%3Av30667%22%2C%22flow_ctrl_groups%22%3A%22scc_rule%3Av12493%22%2C%22sp_content%22%3A%22scc_rule%3Av32559%22%2C%22tj_changwei_trendstore%22%3A%22%22%2C%22fc_group14%22%3A%22scc_rule%3Av30666%22%2C%22tj_changwei_trendstore_match%22%3A%22%22%2C%22flow_ctrl_expA%22%3A%22%22%2C%22fc_group_18%22%3A%22scc_rule%3Av30475%22%2C%22fc_group_17%22%3A%22%22%2C%22rec_flow_enable_10336%22%3A%221%22%2C%22fc_group_19%22%3A%22%22%2C%22rec_flow_enable_10334%22%3A%221%22%2C%22rec_flow_enable_10290%22%3A%221%22%2C%22yff_datatest_0423%22%3A%22%22%2C%22rec_flow_enable_10291%22%3A%221%22%2C%22flow_ctrl_expC%22%3A%22%22%2C%22fc_group_16%22%3A%22%22%2C%22flow_ctrl_expB%22%3A%22%22%2C%22fc_group25%22%3A%22scc_rule%3Av31161%22%2C%22fc_group_30%22%3A%22scc_rule%3Av33868%22%2C%22fc_group26%22%3A%22scc_rule%3Av31813%22%2C%22rec_ha3_enable_s10104%22%3A%22%22%2C%22yff_prod_test_250207%22%3A%22%22%2C%22fc_group_29%22%3A%22scc_rule%3Av33867%22%2C%22fc_group_28%22%3A%22scc_rule%3Av32853%22%2C%22rec_flow_enable_10326%22%3A%221%22%2C%22rec_flow_enable_10320%22%3A%221%22%2C%22rec_flow_enable_10288%22%3A%221%22%2C%22rec_flow_enable_10321%22%3A%221%22%2C%22rec_flow_enable_10289%22%3A%221%22%2C%22OldVersion_Erotic_filter%22%3A%22%22%2C%22fc_group_20%22%3A%22scc_rule%3Av30477%22%2C%22flow_ctrl_new%22%3A%22scc_rule%3Av19384%22%2C%22fc_group_24%22%3A%22scc_rule%3Av30735%22%2C%22fc_group_27%22%3A%22scc_rule%3Av32852%22%2C%22flow_ctrl_D1%22%3A%22scc_rule%3Av6748%22%2C%22flow_ctrl_D2%22%3A%22scc_rule%3Av6749%22%2C%22tj_component_rank%22%3A%22%22%2C%22tj_component_prerank%22%3A%22%22%2C%22rec_flow_enable_10314%22%3A%221%22%2C%22rec_flow_enable_10315%22%3A%221%22%2C%22flow_ctrl_Others%22%3A%22scc_rule%3Av6745%22%2C%22yff_test_260423%22%3A%22%22%2C%22tj_high_efficiency_long_tail%22%3A%22%22%2C%22flow_ctrl_C2%22%3A%22scc_rule%3Av6747%22%2C%22flow_ctrl_C1%22%3A%22scc_rule%3Av6746%22%7D&limit=20&page=1&strategicPoskey=GeneralSimilarEdge&strategicSceneId=10104",
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/user/currency/list?_ver=1.1.8&_lang=en",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://us.shein.com/bff-api/ccc/bottom/policy/aggregation?_ver=1.1.8&_lang=en&channel_id=23&page_type=1",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "商汤科技",
+    "url": "https://www.sensetime.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "旷视科技",
+    "url": "https://www.megvii.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "地平线",
+    "url": "https://www.horizon-robotics.com/careers",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://channel-p05.xiaoshouyi.com/channel/imi18n/getResourceWithTokenByLang?tenantToken=8943a92ff42a7592b22df4da02596213&localCode=zh&language=zh",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 3 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "蔚来",
+    "url": "https://nio.jobs.f.mioffice.cn/jobs",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "理想汽车",
+    "url": "https://talent.lixiang.com",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "小鹏汽车",
+    "url": "https://www.xiaopeng.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "比亚迪",
+    "url": "https://job.byd.com/portal/pc/#/home",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "特斯拉中国",
+    "url": "https://www.tesla.cn/careers",
+    "apis_found": 2,
+    "apis": [
+      {
+        "url": "https://www.tesla.cn/api/tesla/header/v1_1/careers",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://www.tesla.cn/api/tesla/header/v1_1/careers",
+        "method": "GET",
+        "post_data": null,
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "宁德时代",
+    "url": "https://www.catl.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "招商银行",
+    "url": "https://career.cmbchina.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "建设银行",
+    "url": "https://job.ccb.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "工商银行",
+    "url": "https://job.icbc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国银行",
+    "url": "https://campus.bank-of-china.com/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "邮储银行",
+    "url": "https://zhaopin.psbc.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "交通银行",
+    "url": "https://job.bankcomm.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国平安",
+    "url": "https://campus.pingan.com/",
+    "apis_found": 6,
+    "apis": [
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":3}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":4}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":5}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":6}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":7}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      },
+      {
+        "url": "https://campus.pingan.com/zztj-recruit-talent-webserver/rctt/candidate/homepage/queryCommonPageBlockInfo",
+        "method": "POST",
+        "post_data": "{\"webSiteType\":3,\"blockNo\":8}",
+        "reason": "URL+数据匹配 (关键词: 2)",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "中国人寿",
+    "url": "https://career.chinalife.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "汇丰科技",
+    "url": "https://www.hsbc.com/careers",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "国家电网",
+    "url": "https://zhaopin.sgcc.com.cn/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中石油",
+    "url": "https://zhaopin.cnpc.com.cn/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中石化",
+    "url": "https://job.sinopec.com/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国电信",
+    "url": "https://www.chinatelecom.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国移动",
+    "url": "https://campus.chinamobile.com/",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国联通",
+    "url": "https://www.chinaunicom.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "顺丰",
+    "url": "https://www.sf-express.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中建集团",
+    "url": "https://recruit.cscec.com/recruit#/",
+    "apis_found": 1,
+    "apis": [
+      {
+        "url": "https://recruit.cscec.com/api/language/get_language?lang=zh_cn",
+        "method": "GET",
+        "post_data": null,
+        "reason": "数据包含 9 个岗位关键词",
+        "data_path": "",
+        "total_count": 0,
+        "sample_fields": [],
+        "field_mapping": {}
+      }
+    ]
+  },
+  {
+    "name": "中国电建",
+    "url": "https://www.powerchina.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国能建",
+    "url": "https://www.ceec.net.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国铁建",
+    "url": "https://www.crcc.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国船舶",
+    "url": "https://www.cssc.net.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国兵器",
+    "url": "https://www.norincogroup.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国电子",
+    "url": "https://www.cec.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国华能",
+    "url": "https://www.chng.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国大唐",
+    "url": "https://www.china-cdt.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国华电",
+    "url": "https://www.chd.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "华润集团",
+    "url": "https://www.crc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国中化",
+    "url": "https://www.sinochem.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国五矿",
+    "url": "https://www.minmetals.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国宝武",
+    "url": "https://www.baowugroup.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国铝业",
+    "url": "https://www.chalco.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国建材",
+    "url": "https://www.cnbm.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国黄金",
+    "url": "https://www.chinagoldgroup.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国广核",
+    "url": "https://www.cgnpc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中国核工业",
+    "url": "https://www.cnnc.com.cn/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "招商局集团",
+    "url": "https://www.cmhk.com/campus",
+    "apis_found": 0,
+    "apis": []
+  },
+  {
+    "name": "中信集团",
+    "url": "https://www.citic.com/campus",
+    "apis_found": 0,
+    "apis": []
+  }
+]
