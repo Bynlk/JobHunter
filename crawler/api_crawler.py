@@ -307,67 +307,27 @@ class ApiCrawler(BaseCrawler):
 
     def __init__(self):
         super().__init__(WEBSITE_CONFIG)
-        self.config_file = WEBSITE_CONFIG['config_file']
-        self.companies = []
-
-    def load_companies(self):
-        """加载公司配置"""
-        try:
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                self.companies = json.load(f)
-            logger.info(f"成功加载 {len(self.companies)} 家公司配置")
-            return self.companies
-        except Exception as e:
-            logger.error(f"加载公司配置失败: {e}")
-            return []
 
     def crawl(self, filters=None):
-        """
-        执行 API 抓取
-        """
+        """执行 API 抓取，只抓取有已知 API 配置的公司"""
         all_jobs = []
-
-        # 加载公司配置
-        companies = self.load_companies()
-        if not companies:
-            return all_jobs
+        company_names = list(self.API_CONFIGS.keys())
 
         # 按过滤条件筛选
-        if filters:
-            filtered = []
-            for c in companies:
-                name = c.get('name', '')
-                industry = c.get('industry', '')
-                if filters.get('companies') and name not in filters['companies']:
-                    continue
-                if filters.get('industries') and industry not in filters['industries']:
-                    continue
-                filtered.append(c)
-            companies = filtered
+        if filters and filters.get('companies'):
+            company_names = [n for n in company_names if n in filters['companies']]
 
-        total = len(companies)
+        total = len(company_names)
 
-        for idx, company in enumerate(companies, 1):
+        for idx, name in enumerate(company_names, 1):
             if self.should_stop():
                 break
-
-            name = company.get('name', '')
-            url = company.get('url', '')
-
-            if not url:
-                continue
 
             logger.info(f"[{idx}/{total}] 开始抓取: {name}")
             self.report_progress(f"[{idx}/{total}] 正在抓取: {name}", len(all_jobs))
 
             try:
-                # 检查是否有 API 配置
-                if name in self.API_CONFIGS:
-                    jobs = self._crawl_by_api(name, company)
-                else:
-                    # 尝试自动检测 API
-                    jobs = self._try_detect_api(name, company)
-
+                jobs = self._crawl_by_api(name)
                 if jobs:
                     all_jobs.extend(jobs)
                     self.emit_jobs(jobs)
@@ -378,17 +338,14 @@ class ApiCrawler(BaseCrawler):
                 logger.error(f"[{idx}/{total}] {name} 抓取异常: {e}")
                 continue
 
-            # 随机延迟
             if idx < total:
                 self.random_delay()
 
         logger.info(f"API 爬虫完成，共抓取 {len(all_jobs)} 条岗位")
         return all_jobs
 
-    def _crawl_by_api(self, company_name, company_config):
-        """
-        使用已知 API 配置抓取，支持分页，支持 GET 和 POST
-        """
+    def _crawl_by_api(self, company_name):
+        """使用已知 API 配置抓取，支持分页，支持 GET 和 POST"""
         api_config = self.API_CONFIGS[company_name]
         jobs = []
 
@@ -396,7 +353,7 @@ class ApiCrawler(BaseCrawler):
 
         try:
             # 先访问页面获取 Cookie 和 CSRF token
-            referer = api_config.get('referer', company_config['url'])
+            referer = api_config.get('referer', '')
             if not self.safe_goto(page, referer):
                 logger.warning(f"无法加载页面: {referer}")
                 return jobs
@@ -624,207 +581,3 @@ class ApiCrawler(BaseCrawler):
             logger.debug(f"解析 API 数据失败: {e}")
             return None
 
-    def _try_detect_api(self, company_name, company_config):
-        """
-        尝试自动检测 API 接口
-        监听网络请求，捕获响应数据，自动识别岗位 API 并提取数据
-        """
-        jobs = []
-        page = self.create_page()
-
-        captured_responses = []
-
-        # 岗位相关关键词
-        JOB_KEYWORDS = [
-            'title', 'name', 'position', 'job', 'city', 'location',
-            'salary', 'degree', 'education', 'department', 'workCity',
-            'jobTitle', 'positionName', 'jobName', 'workPlace',
-        ]
-
-        # 排除的 URL 模式
-        EXCLUDE_PATTERNS = [
-            '.css', '.js', '.png', '.jpg', '.gif', '.svg', '.ico',
-            'analytics', 'tracking', 'log', 'stat', 'beacon',
-            'captcha', 'verify', 'auth', 'login', 'logout',
-            'config', 'setting', 'preference', 'chat', 'message',
-        ]
-
-        def handle_response(response):
-            try:
-                url = response.url
-                content_type = response.headers.get('content-type', '')
-
-                if 'json' not in content_type or response.status != 200:
-                    return
-
-                # 排除非岗位 API
-                url_lower = url.lower()
-                if any(p in url_lower for p in EXCLUDE_PATTERNS):
-                    return
-
-                # 只关注可能包含岗位数据的 URL
-                if not any(kw in url_lower for kw in ['search', 'list', 'job', 'position', 'api', 'query', 'page']):
-                    return
-
-                try:
-                    body = response.json()
-                    captured_responses.append({
-                        'url': url,
-                        'method': response.request.method,
-                        'body': body,
-                    })
-                except:
-                    pass
-            except:
-                pass
-
-        page.on('response', handle_response)
-
-        try:
-            # 访问页面
-            if not self.safe_goto(page, company_config['url']):
-                return jobs
-
-            # 等待页面加载和 API 请求
-            time.sleep(5)
-
-            # 滚动页面触发更多 API
-            for _ in range(3):
-                page.evaluate('window.scrollBy(0, 500)')
-                time.sleep(1)
-
-            time.sleep(2)
-
-            logger.info(f"{company_name} 捕获到 {len(captured_responses)} 个 JSON 响应")
-
-            # 分析每个响应，查找岗位数据
-            for resp in captured_responses:
-                body = resp['body']
-                data_str = json.dumps(body, ensure_ascii=False).lower()
-
-                # 统计岗位关键词
-                keyword_count = sum(1 for kw in JOB_KEYWORDS if kw in data_str)
-                if keyword_count < 3:
-                    continue
-
-                logger.info(f"  [检测] {resp['method']} {resp['url'][:80]}... 包含 {keyword_count} 个岗位关键词")
-
-                # 尝试提取数据列表
-                data_list = self._find_data_list(body)
-                if not data_list or len(data_list) < 1:
-                    continue
-
-                # 尝试解析岗位数据
-                parsed_jobs = []
-                for item in data_list[:50]:  # 限制最多50条
-                    job = self._auto_parse_job(item, company_name)
-                    if job and job.get('job_title'):
-                        parsed_jobs.append(job)
-
-                if parsed_jobs:
-                    jobs.extend(parsed_jobs)
-                    logger.info(f"  [成功] 自动提取到 {len(parsed_jobs)} 条岗位")
-                    break  # 找到一个有效的 API 就够了
-
-        except Exception as e:
-            logger.error(f"API 检测失败: {e}")
-        finally:
-            page.close()
-
-        return jobs
-
-    def _find_data_list(self, response_data):
-        """
-        从 API 响应中查找数据列表
-        支持常见的数据结构：直接列表、嵌套在 data/content/result 等字段中
-        """
-        # 直接是列表
-        if isinstance(response_data, list) and len(response_data) >= 1:
-            return response_data
-
-        if isinstance(response_data, dict):
-            # 在常见字段中查找列表
-            for key in ['data', 'content', 'result', 'list', 'records', 'items', 'datas', 'rows']:
-                value = response_data.get(key)
-                if isinstance(value, list) and len(value) >= 1:
-                    return value
-                # 嵌套一层
-                if isinstance(value, dict):
-                    for inner_key in ['list', 'records', 'items', 'datas', 'rows', 'data']:
-                        inner_value = value.get(inner_key)
-                        if isinstance(inner_value, list) and len(inner_value) >= 1:
-                            return inner_value
-
-        return None
-
-    def _auto_parse_job(self, item, company_name):
-        """
-        自动解析岗位数据，尝试从常见字段名中提取信息
-        """
-        if not isinstance(item, dict):
-            return None
-
-        # 岗位名称候选字段
-        title_keys = ['name', 'title', 'jobTitle', 'positionName', 'jobName', 'position_title', 'job_name']
-        # 地点候选字段
-        location_keys = ['workLocations', 'city', 'location', 'workCity', 'work_city', 'workArea', 'address', 'workplace']
-        # 描述候选字段
-        desc_keys = ['description', 'desc', 'jobDesc', 'job_desc', 'content', 'requirement', 'duty', 'responsibility']
-        # 薪资候选字段
-        salary_keys = ['salary', 'salaryDesc', 'salary_desc', 'pay', 'wage', 'compensation']
-        # 学历候选字段
-        edu_keys = ['education', 'degree', 'eduReq', 'edu_req']
-        # 日期候选字段
-        date_keys = ['publishTime', 'createTime', 'updateTime', 'date', 'publishDate', 'refreshTime', 'createdate']
-        # URL候选字段
-        url_keys = ['url', 'detailUrl', 'link', 'href', 'positionUrl', 'jobUrl']
-
-        def find_value(keys):
-            for key in keys:
-                if key in item:
-                    return item[key]
-            return None
-
-        job_title = find_value(title_keys) or ''
-        location = find_value(location_keys) or ''
-        job_desc = find_value(desc_keys) or ''
-        salary = find_value(salary_keys) or ''
-        education = find_value(edu_keys) or ''
-        publish_date = find_value(date_keys) or ''
-        job_url = find_value(url_keys) or ''
-
-        # 处理地点是数组的情况
-        if isinstance(location, list):
-            location = ' / '.join(str(loc) for loc in location if loc)
-
-        # 处理描述字段
-        if isinstance(job_desc, list):
-            job_desc = '\n'.join(str(d) for d in job_desc if d)
-
-        # 判断岗位类型
-        job_type = 'graduate'
-        title_lower = str(job_title).lower()
-        if '实习' in title_lower or 'intern' in title_lower:
-            job_type = 'intern'
-
-        if not job_title:
-            return None
-
-        return {
-            'job_title': str(job_title)[:200],
-            'company_name': company_name,
-            'location': str(location)[:100],
-            'salary': str(salary)[:50],
-            'job_type': job_type,
-            'education': str(education)[:50],
-            'publish_date': str(publish_date)[:20],
-            'job_desc': str(job_desc)[:3000],
-            'job_url': str(job_url)[:500],
-            'source': SOURCE_WEBSITE,
-        }
-
-
-def run_api_crawler():
-    """运行 API 爬虫"""
-    crawler = ApiCrawler()
-    return crawler.run()
