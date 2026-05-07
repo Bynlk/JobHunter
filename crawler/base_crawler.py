@@ -174,8 +174,8 @@ class BaseCrawler(ABC):
             min_delay: 最小延迟秒数（默认使用配置值）
             max_delay: 最大延迟秒数（默认使用配置值）
         """
-        min_d = min_delay or self.min_delay
-        max_d = max_delay or self.max_delay
+        min_d = self.min_delay if min_delay is None else min_delay
+        max_d = self.max_delay if max_delay is None else max_delay
         delay = random.uniform(min_d, max_d)
         logger.debug(f"随机延迟 {delay:.1f} 秒")
         time.sleep(delay)
@@ -193,9 +193,11 @@ class BaseCrawler(ABC):
         Returns:
             bool: 是否成功加载页面
         """
-        max_retries = retries or self.max_retries
+        max_retries = self.max_retries if retries is None else retries
 
         for attempt in range(max_retries):
+            if self.should_stop():
+                return False
             try:
                 # 只等待 DOM 加载完成，不等 networkidle（现代 SPA 永远不会 idle）
                 page.goto(url, wait_until='domcontentloaded', timeout=self.timeout)
@@ -224,6 +226,8 @@ class BaseCrawler(ABC):
             bool: 是否成功点击
         """
         for attempt in range(retries):
+            if self.should_stop():
+                return False
             try:
                 page.click(selector, timeout=5000)
                 return True
@@ -285,7 +289,8 @@ class BaseCrawler(ABC):
         """
         try:
             elements = page.query_selector_all(selector)
-            return [el.inner_text().strip() for el in elements if el.inner_text().strip()]
+            texts = [el.inner_text().strip() for el in elements]
+            return [t for t in texts if t]
         except Exception as e:
             logger.debug(f"提取文本列表失败: {selector} - {e}")
             return []

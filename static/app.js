@@ -45,6 +45,14 @@ const app = createApp({
         const companySearch = ref('');
         const companyIndustryFilter = ref('');
 
+        const showSettingsModal = ref(false);
+        const defaultConfig = {
+            shixiseng: { max_pages: 5, min_delay: 2, max_delay: 5, max_retries: 3, timeout: 60000 },
+            ncss: { max_pages: 5, min_delay: 2, max_delay: 5, max_retries: 3, timeout: 60000 },
+            website: { min_delay: 3, max_delay: 8, max_retries: 2, timeout: 60000 },
+        };
+        const crawlerConfig = ref(JSON.parse(JSON.stringify(defaultConfig)));
+
         let crawlPollTimer = null;
         let lastTotalNew = 0;
 
@@ -297,15 +305,66 @@ const app = createApp({
             if (filters.date_from) params.append('date_from', filters.date_from);
             if (filters.date_to) params.append('date_to', filters.date_to);
             if (filters.source) params.append('source', filters.source);
+            if (filters.industry) params.append('industry', filters.industry);
+            if (filters.company_nature) params.append('company_nature', filters.company_nature);
+            if (filters.education) params.append('education', filters.education);
             window.open(`/api/export?${params.toString()}`, '_blank');
         }
 
         // ==================== 生命周期 ====================
 
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/config');
+                if (res.ok) {
+                    const data = await res.json();
+                    // 与默认配置深度合并，防止服务端返回不完整数据
+                    const merged = JSON.parse(JSON.stringify(defaultConfig));
+                    for (const source of Object.keys(merged)) {
+                        if (data[source]) {
+                            Object.assign(merged[source], data[source]);
+                        }
+                    }
+                    crawlerConfig.value = merged;
+                }
+            } catch (e) { console.error('获取爬虫配置失败:', e); }
+        }
+
+        function openSettings() {
+            fetchConfig();
+            showSettingsModal.value = true;
+        }
+
+        async function saveConfig() {
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(crawlerConfig.value),
+                });
+                if (res.ok) {
+                    showSettingsModal.value = false;
+                    alert('保存成功！下次启动爬虫时生效。');
+                } else {
+                    const data = await res.json();
+                    alert(data.error || '保存失败');
+                }
+            } catch (e) {
+                alert('保存失败: ' + e.message);
+            }
+        }
+
+        function resetConfig() {
+            crawlerConfig.value = JSON.parse(JSON.stringify(defaultConfig));
+        }
+
         async function fetchCompanyList() {
             try {
                 const res = await fetch('/api/companies/config');
-                companyList.value = await res.json();
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) companyList.value = data;
+                }
             } catch (e) { console.error('获取公司配置失败:', e); }
         }
 
@@ -332,9 +391,11 @@ const app = createApp({
             jumpPage, sidebarCollapsed, crawlOptions, filtersExpanded,
             showCompanyModal, companyList, companySearch, companyIndustryFilter,
             companyIndustries, companyIndustryCounts, filteredCompanies,
+            showSettingsModal, crawlerConfig,
             totalPages, displayPages,
             fetchJobs, fetchIndustries, searchJobs, resetFilters, goToPage,
-            startCrawl, stopCrawl, clearAllJobs, exportExcel
+            startCrawl, stopCrawl, clearAllJobs, exportExcel,
+            openSettings, saveConfig, resetConfig
         };
     }
 });

@@ -66,6 +66,8 @@ class WebsiteCrawler(BaseCrawler):
         total_companies = len(companies)
         
         for idx, company in enumerate(companies, 1):
+            if self.should_stop():
+                break
             company_name = company.get('name', '未知公司')
             company_url = company.get('url', '')
             

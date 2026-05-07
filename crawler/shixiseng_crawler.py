@@ -26,22 +26,33 @@ class ShixisengCrawler(BaseCrawler):
         all_jobs = []
 
         for keyword in self.keywords:
+            if self.should_stop():
+                break
             logger.info(f"开始抓取实习僧，关键词: {keyword}")
             self.report_progress(f"实习僧 - 关键词: {keyword}")
 
             for page_num in range(1, self.max_pages + 1):
+                if self.should_stop():
+                    break
                 try:
                     search_url = f"{self.base_url}?keyword={keyword}&type=intern&page={page_num}"
                     logger.info(f"抓取第 {page_num} 页: {search_url}")
 
                     page = self.create_page()
                     try:
+                        # 每页重置字体映射，防止跨页脏数据
+                        self._font_mapping = {}
+
                         # 拦截动态字体文件
                         font_data = [None]
                         def intercept_font(route):
-                            resp = route.fetch()
-                            font_data[0] = resp.body()
-                            route.fulfill(response=resp)
+                            try:
+                                resp = route.fetch()
+                                font_data[0] = resp.body()
+                                route.fulfill(response=resp)
+                            except Exception as e:
+                                logger.warning(f"字体拦截失败: {e}")
+                                route.continue_()
                         page.route('**/iconfonts/file**', intercept_font)
 
                         if not self.safe_goto(page, search_url, wait_ms=5000):
@@ -212,11 +223,16 @@ class ShixisengCrawler(BaseCrawler):
         page = self.create_page()
         try:
             # 拦截动态字体
+            self._font_mapping = {}
             font_data = [None]
             def intercept_font(route):
-                resp = route.fetch()
-                font_data[0] = resp.body()
-                route.fulfill(response=resp)
+                try:
+                    resp = route.fetch()
+                    font_data[0] = resp.body()
+                    route.fulfill(response=resp)
+                except Exception as e:
+                    logger.warning(f"详情页字体拦截失败: {e}")
+                    route.continue_()
             page.route('**/iconfonts/file**', intercept_font)
 
             if not self.safe_goto(page, job['job_url'], wait_ms=3000):

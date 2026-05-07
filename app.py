@@ -7,6 +7,8 @@ Flask 主应用模块
 import os
 import sys
 import uuid
+import json
+import copy
 import logging
 import threading
 from datetime import datetime
@@ -19,16 +21,18 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 # 将项目根目录加入 Python 路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import FLASK_CONFIG, DEFAULT_PER_PAGE, MAX_PER_PAGE, EXPORT_CONFIG, BASE_DIR
+from config import FLASK_CONFIG, DEFAULT_PER_PAGE, MAX_PER_PAGE, EXPORT_CONFIG, BASE_DIR, SHIXISENG_CONFIG, NCSS_CONFIG, WEBSITE_CONFIG
 from models import init_database, query_jobs, get_job_by_id, get_all_companies, get_all_industries, get_stats, export_jobs, batch_insert_jobs, clear_all_jobs
 
 # 配置日志
+_log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+os.makedirs(_log_dir, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs', 'app.log'), encoding='utf-8')
+        logging.FileHandler(os.path.join(_log_dir, 'app.log'), encoding='utf-8')
     ]
 )
 logger = logging.getLogger(__name__)
@@ -49,6 +53,13 @@ crawl_status = {
     'task_id': '',           # 任务 ID
     'source': '',            # 当前抓取的数据源
     'stop_requested': False, # 是否请求停止
+}
+
+# ==================== 运行时爬虫配置（可通过 API 动态修改） ====================
+runtime_config = {
+    'shixiseng': copy.deepcopy(SHIXISENG_CONFIG),
+    'ncss': copy.deepcopy(NCSS_CONFIG),
+    'website': copy.deepcopy({k: v for k, v in WEBSITE_CONFIG.items() if k not in ('config_file', 'job_list_selectors', 'job_card_selectors')}),
 }
 
 
@@ -130,8 +141,7 @@ def run_crawler_task(source):
                     crawler.enrich_jobs(jobs, max_count=100)
                     crawler.close_browser()
                     # 更新数据库中的详情信息
-                    from models import batch_insert_jobs as batch_update
-                    batch_update(jobs)
+                    batch_insert_jobs(jobs)
                 logger.info(f"实习僧爬虫结束，共处理 {len(jobs)} 条数据")
             except Exception as e:
                 logger.error(f"实习僧爬虫异常: {e}")
@@ -314,25 +324,18 @@ def api_start_crawl():
         if source not in valid_sources:
             return jsonify({'error': f'无效的数据源: {source}，有效值: {valid_sources}'}), 400
         
-        # 检查是否已有任务在运行
+        # 检查是否已有任务在运行，并原子性地设置为运行中
+        task_id = str(uuid.uuid4())
         with crawl_status_lock:
             if crawl_status['status'] == 'running':
                 return jsonify({'error': '已有爬虫任务正在运行，请等待完成'}), 409
-        
-        # 生成任务 ID
-        task_id = str(uuid.uuid4())
-        
-        # 更新状态为运行中，重置停止标志
-        with crawl_status_lock:
+            crawl_status['status'] = 'running'
+            crawl_status['progress'] = '正在启动爬虫任务...'
+            crawl_status['total_new'] = 0
+            crawl_status['error_message'] = ''
+            crawl_status['task_id'] = task_id
+            crawl_status['source'] = source
             crawl_status['stop_requested'] = False
-        update_crawl_status(
-            status='running',
-            progress='正在启动爬虫任务...',
-            total_new=0,
-            error_message='',
-            task_id=task_id,
-            source=source
-        )
         
         # 在后台线程中执行爬虫任务
         thread = threading.Thread(target=run_crawler_task, args=(source,), daemon=True)
@@ -476,7 +479,7 @@ def api_export_excel():
                 job.get('company_size', ''),
                 job.get('welfare', ''),
                 job.get('publish_date', ''),
-                job.get('job_desc', '')[:500],  # 限制描述长度
+                (job.get('job_desc') or '')[:500],
                 job.get('job_url', ''),
                 job.get('source', ''),
             ]
@@ -546,10 +549,9 @@ def api_get_companies():
 def api_get_companies_config():
     """获取大厂招聘官网配置列表"""
     try:
-        import json as _json
         config_file = os.path.join(BASE_DIR, 'config', 'company_urls.json')
         with open(config_file, 'r', encoding='utf-8') as f:
-            companies = _json.load(f)
+            companies = json.load(f)
         return jsonify(companies)
     except Exception as e:
         logger.error(f"获取公司配置失败: {e}")
@@ -585,6 +587,75 @@ def api_get_stats():
         return jsonify(stats)
     except Exception as e:
         logger.error(f"获取统计数据失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/config', methods=['GET'])
+def api_get_config():
+    """获取当前爬虫配置 API"""
+    return jsonify({
+        'shixiseng': {
+            'max_pages': runtime_config['shixiseng']['max_pages'],
+            'min_delay': runtime_config['shixiseng']['min_delay'],
+            'max_delay': runtime_config['shixiseng']['max_delay'],
+            'max_retries': runtime_config['shixiseng']['max_retries'],
+            'timeout': runtime_config['shixiseng']['timeout'],
+        },
+        'ncss': {
+            'max_pages': runtime_config['ncss']['max_pages'],
+            'min_delay': runtime_config['ncss']['min_delay'],
+            'max_delay': runtime_config['ncss']['max_delay'],
+            'max_retries': runtime_config['ncss']['max_retries'],
+            'timeout': runtime_config['ncss']['timeout'],
+        },
+        'website': {
+            'min_delay': runtime_config['website']['min_delay'],
+            'max_delay': runtime_config['website']['max_delay'],
+            'max_retries': runtime_config['website']['max_retries'],
+            'timeout': runtime_config['website']['timeout'],
+        },
+    })
+
+
+@app.route('/api/config', methods=['POST'])
+def api_update_config():
+    """更新爬虫配置 API"""
+    try:
+        data = request.get_json() or {}
+
+        # 配置项的类型和范围校验
+        _config_rules = {
+            'max_pages': (int, 1, 100),
+            'min_delay': ((int, float), 0, 60),
+            'max_delay': ((int, float), 0, 120),
+            'max_retries': (int, 0, 10),
+            'timeout': (int, 5000, 300000),
+        }
+
+        for source in ('shixiseng', 'ncss', 'website'):
+            if source in data:
+                for key in ('max_pages', 'min_delay', 'max_delay', 'max_retries', 'timeout'):
+                    if key in data[source] and key in runtime_config[source]:
+                        val = data[source][key]
+                        rule = _config_rules[key]
+                        if not isinstance(val, rule[0]):
+                            return jsonify({'error': f'{source}.{key} 必须是 {rule[0]} 类型'}), 400
+                        if val < rule[1] or val > rule[2]:
+                            return jsonify({'error': f'{source}.{key} 必须在 {rule[1]}-{rule[2]} 之间'}), 400
+                        runtime_config[source][key] = val
+                        # 同步到模块级配置字典（爬虫初始化时读取）
+                        if source == 'shixiseng':
+                            SHIXISENG_CONFIG[key] = val
+                        elif source == 'ncss':
+                            NCSS_CONFIG[key] = val
+                        elif source == 'website':
+                            WEBSITE_CONFIG[key] = val
+
+        logger.info(f"爬虫配置已更新: {runtime_config}")
+        return jsonify({'status': 'ok', 'config': runtime_config})
+
+    except Exception as e:
+        logger.error(f"更新配置失败: {e}")
         return jsonify({'error': str(e)}), 500
 
 

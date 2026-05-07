@@ -38,6 +38,8 @@ class NCSSCrawler(BaseCrawler):
             logger.info("国家平台首页加载完成")
 
             for page_num in range(1, self.max_pages + 1):
+                if self.should_stop():
+                    break
                 offset = page_num
                 limit = 20
 
@@ -45,10 +47,10 @@ class NCSSCrawler(BaseCrawler):
                 self.report_progress(f"国家平台 - 第{page_num}页", len(all_jobs))
 
                 try:
-                    result = page.evaluate(f'''async () => {{
-                        const resp = await fetch("{self.api_url}?jobType=&areaCode=&jobName=&monthPay=&industrySectors=&property=&categoryCode=&memberLevel=&recruitType=&offset={offset}&limit={limit}&keyUnits=&degreeCode=&sourcesName=0&sourcesType=&_={int(datetime.now().timestamp()*1000)}");
-                        return await resp.json();
-                    }}''')
+                    # 构建 URL 参数，避免 JS 注入
+                    ts = int(datetime.now().timestamp() * 1000)
+                    api_url = f"{self.api_url}?jobType=&areaCode=&jobName=&monthPay=&industrySectors=&property=&categoryCode=&memberLevel=&recruitType=&offset={offset}&limit={limit}&keyUnits=&degreeCode=&sourcesName=0&sourcesType=&_={ts}"
+                    result = page.evaluate('async (url) => { const resp = await fetch(url); return await resp.json(); }', api_url)
 
                     if not result or not result.get('data') or not result['data'].get('list'):
                         logger.info(f"第 {page_num} 页无数据，停止翻页")
@@ -59,9 +61,13 @@ class NCSSCrawler(BaseCrawler):
 
                     page_jobs = []
                     for item in jobs_data:
-                        job = self._normalize_job(item)
-                        if job and job.get('job_url'):
-                            page_jobs.append(job)
+                        try:
+                            job = self._normalize_job(item)
+                            if job and job.get('job_url'):
+                                page_jobs.append(job)
+                        except Exception as e:
+                            logger.debug(f"解析岗位数据失败: {e}")
+                            continue
 
                     if page_jobs:
                         all_jobs.extend(page_jobs)

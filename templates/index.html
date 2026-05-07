@@ -154,6 +154,13 @@
                     </button>
                 </div>
 
+                <!-- 爬虫设置 -->
+                <div class="sidebar-section">
+                    <button class="btn-settings" @click="openSettings">
+                        <i class="bi bi-gear"></i> 爬虫设置
+                    </button>
+                </div>
+
                 <!-- 统计信息 -->
                 <div class="sidebar-section" v-if="stats.total_jobs">
                     <h6 class="section-title"><i class="bi bi-bar-chart"></i> 数据统计</h6>
@@ -291,7 +298,8 @@
                     <div class="card-header">
                         <div class="card-main">
                             <h3 class="job-title">
-                                <a :href="job.job_url" target="_blank" rel="noopener noreferrer">{{ job.job_title }}</a>
+                                <a v-if="job.job_url" :href="job.job_url" target="_blank" rel="noopener noreferrer">{{ job.job_title }}</a>
+                                <span v-else>{{ job.job_title }}</span>
                             </h3>
                             <div class="job-meta">
                                 <span class="meta-item company"><i class="bi bi-building"></i>{{ job.company_name }}</span>
@@ -313,7 +321,7 @@
 
                     <div class="card-body">
                         <div class="welfare-tags" v-if="job.welfare">
-                            <span class="welfare-tag" v-for="tag in job.welfare.match(/.{1,6}/g)" :key="tag">{{ tag }}</span>
+                            <span class="welfare-tag" v-for="(tag, tIdx) in String(job.welfare).match(/.{1,6}/g)" :key="tIdx">{{ tag }}</span>
                         </div>
                         <div class="job-desc-wrapper">
                             <p class="job-desc" :class="{ expanded: job._expanded }">{{ job.job_desc || '暂无岗位描述' }}</p>
@@ -329,7 +337,7 @@
                             <span class="publish-date"><i class="bi bi-calendar3"></i>{{ job.publish_date || '未知' }}</span>
                             <span class="source-tag"><i class="bi bi-tag"></i>{{ job.source }}</span>
                         </div>
-                        <a :href="job.job_url" target="_blank" rel="noopener noreferrer" class="btn-detail">
+                        <a v-if="job.job_url" :href="job.job_url" target="_blank" rel="noopener noreferrer" class="btn-detail">
                             查看详情 <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
@@ -417,6 +425,101 @@
                 </div>
             </div>
         </div>
+
+        <!-- 爬虫设置弹窗 -->
+        <div class="modal-overlay" v-if="showSettingsModal" @click.self="showSettingsModal = false">
+            <div class="modal-content modal-settings">
+                <div class="modal-header">
+                    <h3><i class="bi bi-gear"></i> 爬虫设置</h3>
+                    <button class="modal-close" @click="showSettingsModal = false">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                <!-- 实习僧 -->
+                <div class="config-section">
+                    <h5 class="config-title"><i class="bi bi-briefcase"></i> 实习僧</h5>
+                    <div class="config-grid">
+                        <div class="config-field">
+                            <label>最大抓取页数</label>
+                            <input type="number" v-model.number="crawlerConfig.shixiseng.max_pages" min="1" max="50">
+                        </div>
+                        <div class="config-field">
+                            <label>最小延迟 (秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.shixiseng.min_delay" min="0" max="30" step="0.5">
+                        </div>
+                        <div class="config-field">
+                            <label>最大延迟 (秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.shixiseng.max_delay" min="0" max="60" step="0.5">
+                        </div>
+                        <div class="config-field">
+                            <label>最大重试次数</label>
+                            <input type="number" v-model.number="crawlerConfig.shixiseng.max_retries" min="0" max="10">
+                        </div>
+                        <div class="config-field">
+                            <label>页面超时 (毫秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.shixiseng.timeout" min="5000" max="300000" step="1000">
+                        </div>
+                    </div>
+                </div>
+                <!-- 国家平台 -->
+                <div class="config-section">
+                    <h5 class="config-title"><i class="bi bi-building"></i> 国家平台</h5>
+                    <div class="config-grid">
+                        <div class="config-field">
+                            <label>最大抓取页数</label>
+                            <input type="number" v-model.number="crawlerConfig.ncss.max_pages" min="1" max="50">
+                        </div>
+                        <div class="config-field">
+                            <label>最小延迟 (秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.ncss.min_delay" min="0" max="30" step="0.5">
+                        </div>
+                        <div class="config-field">
+                            <label>最大延迟 (秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.ncss.max_delay" min="0" max="60" step="0.5">
+                        </div>
+                        <div class="config-field">
+                            <label>最大重试次数</label>
+                            <input type="number" v-model.number="crawlerConfig.ncss.max_retries" min="0" max="10">
+                        </div>
+                        <div class="config-field">
+                            <label>页面超时 (毫秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.ncss.timeout" min="5000" max="300000" step="1000">
+                        </div>
+                    </div>
+                </div>
+                <!-- 大厂官网 -->
+                <div class="config-section">
+                    <h5 class="config-title"><i class="bi bi-buildings"></i> 大厂官网</h5>
+                    <div class="config-grid">
+                        <div class="config-field">
+                            <label>最小延迟 (秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.website.min_delay" min="0" max="30" step="0.5">
+                        </div>
+                        <div class="config-field">
+                            <label>最大延迟 (秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.website.max_delay" min="0" max="60" step="0.5">
+                        </div>
+                        <div class="config-field">
+                            <label>最大重试次数</label>
+                            <input type="number" v-model.number="crawlerConfig.website.max_retries" min="0" max="10">
+                        </div>
+                        <div class="config-field">
+                            <label>页面超时 (毫秒)</label>
+                            <input type="number" v-model.number="crawlerConfig.website.timeout" min="5000" max="300000" step="1000">
+                        </div>
+                    </div>
+                </div>
+                <div class="config-tip">
+                    <i class="bi bi-info-circle"></i> 修改后点击保存，下次启动爬虫时生效。增大延迟可降低被封风险，增大页数可获取更多数据。
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-reset-config" @click="resetConfig"><i class="bi bi-arrow-counterclockwise"></i> 恢复默认</button>
+                <button class="btn-save-config" @click="saveConfig"><i class="bi bi-check-lg"></i> 保存设置</button>
+            </div>
+        </div>
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>

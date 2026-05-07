@@ -21,7 +21,7 @@ def get_db_connection():
     获取数据库连接的上下文管理器
     自动处理连接的打开和关闭，以及事务的提交和回滚
     """
-    conn = sqlite3.connect(DATABASE_PATH)
+    conn = sqlite3.connect(DATABASE_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row  # 使查询结果可以通过列名访问
     conn.execute("PRAGMA journal_mode=WAL")  # 启用 WAL 模式提高并发性能
     try:
@@ -520,8 +520,8 @@ def clear_all_jobs():
     """
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT COUNT(*) FROM jobs')
-        count = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) as cnt FROM jobs')
+        count = cursor.fetchone()['cnt']
         cursor.execute('DELETE FROM jobs')
         logger.info(f"已清空 {count} 条岗位数据")
         return count
@@ -532,119 +532,15 @@ def export_jobs(keyword=None, company=None, location=None, job_type=None,
                 source=None, industry=None, company_nature=None, education=None):
     """
     导出岗位数据（不分页，返回所有符合条件的数据）
-
-    Args:
-        同 query_jobs 参数
-
-    Returns:
-        list: 岗位数据字典列表
+    复用 query_jobs 的筛选逻辑，使用大分页获取全部数据
     """
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-
-        # 构建查询条件（与 query_jobs 相同）
-        conditions = []
-        params = []
-
-        if keyword:
-            conditions.append("(job_title LIKE ? OR job_desc LIKE ?)")
-            params.extend([f'%{keyword}%', f'%{keyword}%'])
-
-        if company:
-            conditions.append("company_name LIKE ?")
-            params.append(f'%{company}%')
-
-        if location:
-            conditions.append("location LIKE ?")
-            params.append(f'%{location}%')
-
-        if job_type and job_type != 'all':
-            conditions.append("job_type = ?")
-            params.append(job_type)
-
-        if salary_min:
-            conditions.append("""
-                CASE
-                    WHEN salary LIKE '%K-%' THEN CAST(REPLACE(SUBSTR(salary, 1, INSTR(salary, '-') - 1), 'K', '') AS INTEGER)
-                    WHEN salary LIKE '%k-%' THEN CAST(REPLACE(SUBSTR(salary, 1, INSTR(salary, '-') - 1), 'k', '') AS INTEGER)
-                    ELSE 0
-                END >= ?
-            """)
-            params.append(salary_min)
-
-        if salary_max:
-            conditions.append("""
-                CASE
-                    WHEN salary LIKE '%K-%' THEN CAST(REPLACE(SUBSTR(salary, INSTR(salary, '-') + 1, INSTR(SUBSTR(salary, INSTR(salary, '-') + 1), 'K') - 1), 'K', '') AS INTEGER)
-                    WHEN salary LIKE '%k-%' THEN CAST(REPLACE(SUBSTR(salary, INSTR(salary, '-') + 1, INSTR(SUBSTR(salary, INSTR(salary, '-') + 1), 'k') - 1), 'k', '') AS INTEGER)
-                    ELSE 999999
-                END <= ?
-            """)
-            params.append(salary_max)
-
-        if date_from:
-            conditions.append("publish_date >= ?")
-            params.append(date_from)
-
-        if date_to:
-            conditions.append("publish_date <= ?")
-            params.append(date_to)
-
-        if source:
-            source_list = [s.strip() for s in source.split(',')]
-            placeholders = ','.join(['?' for _ in source_list])
-            conditions.append(f"source IN ({placeholders})")
-            params.extend(source_list)
-
-        if industry:
-            conditions.append("industry LIKE ?")
-            params.append(f'%{industry}%')
-
-        if company_nature:
-            conditions.append("company_nature = ?")
-            params.append(company_nature)
-
-        if education:
-            conditions.append("education LIKE ?")
-            params.append(f'%{education}%')
-
-        where_clause = " AND ".join(conditions) if conditions else "1=1"
-
-        query_sql = f"""
-            SELECT id, job_title, company_name, location, salary, job_type,
-                   education, publish_date, job_desc, job_url, source,
-                   industry, company_nature, company_size, welfare,
-                   created_at, updated_at
-            FROM jobs
-            WHERE {where_clause}
-            ORDER BY publish_date DESC, created_at DESC
-        """
-        cursor.execute(query_sql, params)
-        rows = cursor.fetchall()
-
-        data = []
-        for row in rows:
-            data.append({
-                'id': row['id'],
-                'job_title': row['job_title'],
-                'company_name': row['company_name'],
-                'location': row['location'],
-                'salary': row['salary'],
-                'job_type': row['job_type'],
-                'education': row['education'],
-                'publish_date': row['publish_date'],
-                'job_desc': row['job_desc'],
-                'job_url': row['job_url'],
-                'source': row['source'],
-                'industry': row['industry'],
-                'company_nature': row['company_nature'],
-                'company_size': row['company_size'],
-                'welfare': row['welfare'],
-                'created_at': row['created_at'],
-                'updated_at': row['updated_at'],
-            })
-
-        return data
+    result = query_jobs(
+        keyword=keyword, company=company, location=location, job_type=job_type,
+        salary_min=salary_min, salary_max=salary_max, date_from=date_from, date_to=date_to,
+        source=source, industry=industry, company_nature=company_nature, education=education,
+        page=1, per_page=100000
+    )
+    return result['data']
 
 
 def get_all_industries():
