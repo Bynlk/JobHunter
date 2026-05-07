@@ -62,8 +62,8 @@
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/your-username/job-hunter.git
-cd job-hunter/job_aggregator
+git clone https://github.com/your-username/JobHunter.git
+cd JobHunter
 ```
 
 ### 2. 创建虚拟环境 & 安装依赖
@@ -108,7 +108,7 @@ python app.py
 ## 📁 项目结构
 
 ```
-job_aggregator/
+JobHunter/
 ├── app.py                      # Flask 主应用 + API 路由
 ├── config.py                   # 全局配置（爬虫参数、数据库路径等）
 ├── models.py                   # SQLite 数据库层（CRUD 操作）
@@ -200,7 +200,7 @@ job_aggregator/
 
 ## ⚙️ 配置说明
 
-编辑 [`config.py`](job_aggregator/config.py) 可调整以下参数：
+编辑 [`config.py`](config.py) 可调整以下参数：
 
 | 配置项 | 说明 | 默认值 |
 |:-------|:-----|:-------|
