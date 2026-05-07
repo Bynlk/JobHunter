@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>实习&校招岗位聚合站</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>JobHunter — 实习 & 校招岗位聚合平台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="/static/style.css" rel="stylesheet">
 </head>
@@ -13,10 +12,16 @@
         <!-- 侧边栏 -->
         <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
             <div class="sidebar-header">
-                <h4 class="sidebar-logo" v-show="!sidebarCollapsed">
-                    <i class="bi bi-briefcase-fill"></i> 岗位聚合站
-                </h4>
-                <button class="btn btn-sm btn-outline-light sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
+                <div class="logo-section" v-show="!sidebarCollapsed">
+                    <div class="logo-icon">
+                        <i class="bi bi-briefcase-fill"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h4 class="logo-title">JobHunter</h4>
+                        <span class="logo-subtitle">实习 & 校招聚合平台</span>
+                    </div>
+                </div>
+                <button class="sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
                     <i :class="sidebarCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"></i>
                 </button>
             </div>
@@ -24,109 +29,136 @@
             <div class="sidebar-body" v-show="!sidebarCollapsed">
                 <!-- 搜索 -->
                 <div class="sidebar-section">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" v-model="filters.keyword" placeholder="搜索岗位关键词" @keyup.enter="searchJobs">
+                    <div class="search-box">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" v-model="filters.keyword" placeholder="搜索岗位关键词..." @keyup.enter="searchJobs">
                     </div>
                 </div>
 
                 <!-- 筛选区 -->
                 <div class="sidebar-section">
-                    <h6 class="sidebar-section-title">筛选条件</h6>
-
-                    <label class="filter-label">公司</label>
-                    <select class="form-select form-select-sm mb-2" v-model="filters.company">
-                        <option value="">全部公司</option>
-                        <option v-for="company in companies" :key="company" :value="company">{{ company }}</option>
-                    </select>
-
-                    <label class="filter-label">工作地点</label>
-                    <input type="text" class="form-control form-control-sm mb-2" v-model="filters.location" placeholder="如：北京">
-
-                    <label class="filter-label">岗位类型</label>
-                    <select class="form-select form-select-sm mb-2" v-model="filters.job_type">
-                        <option value="all">不限</option>
-                        <option value="intern">实习</option>
-                        <option value="graduate">校招</option>
-                    </select>
-
-                    <label class="filter-label">薪资范围 (K)</label>
-                    <div class="d-flex gap-1 mb-2">
-                        <input type="number" class="form-control form-control-sm" v-model="filters.salary_min" placeholder="最低">
-                        <span class="text-light align-self-center">-</span>
-                        <input type="number" class="form-control form-control-sm" v-model="filters.salary_max" placeholder="最高">
-                    </div>
-
-                    <label class="filter-label">发布日期</label>
-                    <div class="d-flex gap-1 mb-2">
-                        <input type="date" class="form-control form-control-sm" v-model="filters.date_from">
-                        <input type="date" class="form-control form-control-sm" v-model="filters.date_to">
-                    </div>
-
-                    <label class="filter-label">数据来源</label>
-                    <select class="form-select form-select-sm mb-2" v-model="filters.source">
-                        <option value="">全部来源</option>
-                        <option value="实习僧">实习僧</option>
-                        <option value="国家平台">国家平台</option>
-                        <option value="官网">官网</option>
-                    </select>
-
-                    <label class="filter-label">行业</label>
-                    <select class="form-select form-select-sm mb-2" v-model="filters.industry">
-                        <option value="">全部行业</option>
-                        <option v-for="ind in industries" :key="ind" :value="ind">{{ ind }}</option>
-                    </select>
-
-                    <label class="filter-label">公司性质</label>
-                    <select class="form-select form-select-sm mb-2" v-model="filters.company_nature">
-                        <option value="">不限</option>
-                        <option value="民营企业">民营企业</option>
-                        <option value="国有企业">国有企业</option>
-                        <option value="外资企业">外资企业</option>
-                        <option value="合资企业">合资企业</option>
-                        <option value="事业单位">事业单位</option>
-                        <option value="政府机关">政府机关</option>
-                    </select>
-
-                    <label class="filter-label">学历要求</label>
-                    <select class="form-select form-select-sm mb-3" v-model="filters.education">
-                        <option value="">不限</option>
-                        <option value="博士">博士</option>
-                        <option value="硕士">硕士</option>
-                        <option value="本科">本科</option>
-                        <option value="大专">大专</option>
-                    </select>
-
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm flex-grow-1" @click="searchJobs">
-                            <i class="bi bi-search me-1"></i>搜索
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" @click="resetFilters">
+                    <div class="section-header">
+                        <h6 class="section-title"><i class="bi bi-funnel"></i> 筛选条件</h6>
+                        <button class="btn-reset" @click="resetFilters" title="重置筛选">
                             <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
-                        <button class="btn btn-success btn-sm" @click="exportExcel" title="导出 Excel">
-                            <i class="bi bi-file-earmark-excel"></i>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">公司</label>
+                        <select v-model="filters.company">
+                            <option value="">全部公司</option>
+                            <option v-for="company in companies" :key="company" :value="company">{{ company }}</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">工作地点</label>
+                        <input type="text" v-model="filters.location" placeholder="如：北京">
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">岗位类型</label>
+                        <div class="radio-group">
+                            <label class="radio-item" :class="{ active: filters.job_type === 'all' }">
+                                <input type="radio" v-model="filters.job_type" value="all"> 不限
+                            </label>
+                            <label class="radio-item" :class="{ active: filters.job_type === 'intern' }">
+                                <input type="radio" v-model="filters.job_type" value="intern"> 实习
+                            </label>
+                            <label class="radio-item" :class="{ active: filters.job_type === 'graduate' }">
+                                <input type="radio" v-model="filters.job_type" value="graduate"> 校招
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">薪资范围 (K)</label>
+                        <div class="range-inputs">
+                            <input type="number" v-model="filters.salary_min" placeholder="最低">
+                            <span class="range-separator">—</span>
+                            <input type="number" v-model="filters.salary_max" placeholder="最高">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">发布日期</label>
+                        <div class="range-inputs">
+                            <input type="date" v-model="filters.date_from">
+                            <span class="range-separator">—</span>
+                            <input type="date" v-model="filters.date_to">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">数据来源</label>
+                        <select v-model="filters.source">
+                            <option value="">全部来源</option>
+                            <option value="实习僧">实习僧</option>
+                            <option value="国家平台">国家平台</option>
+                            <option value="官网">官网</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">行业</label>
+                        <select v-model="filters.industry">
+                            <option value="">全部行业</option>
+                            <option v-for="ind in industries" :key="ind" :value="ind">{{ ind }}</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">公司性质</label>
+                        <select v-model="filters.company_nature">
+                            <option value="">不限</option>
+                            <option value="民营企业">民营企业</option>
+                            <option value="国有企业">国有企业</option>
+                            <option value="外资企业">外资企业</option>
+                            <option value="合资企业">合资企业</option>
+                            <option value="事业单位">事业单位</option>
+                            <option value="政府机关">政府机关</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">学历要求</label>
+                        <select v-model="filters.education">
+                            <option value="">不限</option>
+                            <option value="博士">博士</option>
+                            <option value="硕士">硕士</option>
+                            <option value="本科">本科</option>
+                            <option value="大专">大专</option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-primary" @click="searchJobs">
+                            <i class="bi bi-search"></i> 搜索
+                        </button>
+                        <button class="btn-export" @click="exportExcel" title="导出 Excel">
+                            <i class="bi bi-file-earmark-excel"></i> 导出
                         </button>
                     </div>
                 </div>
 
                 <!-- 统计信息 -->
                 <div class="sidebar-section" v-if="stats.total_jobs">
-                    <h6 class="sidebar-section-title">数据统计</h6>
+                    <h6 class="section-title"><i class="bi bi-bar-chart"></i> 数据统计</h6>
                     <div class="stats-grid">
-                        <div class="stat-item">
+                        <div class="stat-card stat-total">
                             <span class="stat-value">{{ stats.total_jobs }}</span>
                             <span class="stat-label">总岗位</span>
                         </div>
-                        <div class="stat-item" v-if="stats.sources['实习僧']">
+                        <div class="stat-card stat-shixiseng" v-if="stats.sources['实习僧']">
                             <span class="stat-value">{{ stats.sources['实习僧'] }}</span>
                             <span class="stat-label">实习僧</span>
                         </div>
-                        <div class="stat-item" v-if="stats.sources['国家平台']">
+                        <div class="stat-card stat-ncss" v-if="stats.sources['国家平台']">
                             <span class="stat-value">{{ stats.sources['国家平台'] }}</span>
                             <span class="stat-label">国家平台</span>
                         </div>
-                        <div class="stat-item" v-if="stats.sources['官网']">
+                        <div class="stat-card stat-official" v-if="stats.sources['官网']">
                             <span class="stat-value">{{ stats.sources['官网'] }}</span>
                             <span class="stat-label">官网</span>
                         </div>
@@ -135,48 +167,53 @@
 
                 <!-- 爬虫控制 -->
                 <div class="sidebar-section">
-                    <h6 class="sidebar-section-title">数据抓取</h6>
+                    <h6 class="section-title"><i class="bi bi-cloud-download"></i> 数据抓取</h6>
 
                     <!-- 进度条 -->
-                    <div v-if="crawlStatus.status === 'running'" class="mb-2">
-                        <div class="d-flex align-items-center mb-1">
-                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
-                            <small class="text-light">{{ crawlStatus.progress }}</small>
+                    <div v-if="crawlStatus.status === 'running'" class="crawl-progress">
+                        <div class="progress-info">
+                            <div class="spinner"></div>
+                            <span>{{ crawlStatus.progress }}</span>
                         </div>
-                        <div class="progress" style="height: 4px;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-animated"></div>
                         </div>
-                        <small class="text-muted" v-if="crawlStatus.total_new > 0">已抓取 {{ crawlStatus.total_new }} 条</small>
+                        <span class="progress-count" v-if="crawlStatus.total_new > 0">
+                            已抓取 {{ crawlStatus.total_new }} 条
+                        </span>
                     </div>
 
                     <!-- 完成提示 -->
-                    <div v-if="crawlStatus.status === 'done'" class="alert alert-success py-2 mb-2">
-                        <small><i class="bi bi-check-circle me-1"></i>完成！新增 {{ crawlStatus.total_new }} 条</small>
+                    <div v-if="crawlStatus.status === 'done'" class="crawl-alert success">
+                        <i class="bi bi-check-circle"></i>
+                        <span>完成！新增 {{ crawlStatus.total_new }} 条</span>
                     </div>
 
                     <!-- 错误提示 -->
-                    <div v-if="crawlStatus.status === 'error'" class="alert alert-danger py-2 mb-2">
-                        <small><i class="bi bi-exclamation-triangle me-1"></i>{{ crawlStatus.error_message }}</small>
+                    <div v-if="crawlStatus.status === 'error'" class="crawl-alert error">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>{{ crawlStatus.error_message }}</span>
                     </div>
 
                     <!-- 数据源选择 -->
-                    <div class="mb-2">
-                        <div class="form-check form-check-sm" v-for="opt in crawlOptions" :key="opt.value">
-                            <input class="form-check-input" type="radio" v-model="crawlSource" :value="opt.value" :id="'crawl-' + opt.value">
-                            <label class="form-check-label text-light" :for="'crawl-' + opt.value">
-                                <small>{{ opt.label }}</small>
-                            </label>
-                        </div>
+                    <div class="source-options">
+                        <label class="source-item" v-for="opt in crawlOptions" :key="opt.value"
+                               :class="{ active: crawlSource === opt.value }">
+                            <input type="radio" v-model="crawlSource" :value="opt.value">
+                            <span class="source-radio"></span>
+                            <span>{{ opt.label }}</span>
+                        </label>
                     </div>
 
-                    <button class="btn btn-primary btn-sm w-100" @click="startCrawl" :disabled="crawlStatus.status === 'running'">
-                        <i class="bi bi-cloud-download me-1"></i>开始抓取
+                    <button class="btn-crawl" @click="startCrawl" :disabled="crawlStatus.status === 'running'">
+                        <i class="bi bi-cloud-download"></i>
+                        <span>{{ crawlStatus.status === 'running' ? '抓取中...' : '开始抓取' }}</span>
                     </button>
                 </div>
 
                 <!-- 页脚 -->
                 <div class="sidebar-footer">
-                    <small>&copy; 2026 岗位聚合站</small>
+                    <span>&copy; 2026 JobHunter</span>
                 </div>
             </div>
         </aside>
@@ -185,114 +222,129 @@
         <main class="content">
             <!-- 顶部状态栏 -->
             <div class="content-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="text-muted">共 {{ total }} 条岗位</span>
-                        <span class="text-muted ms-2" v-if="stats.last_updated">
-                            <i class="bi bi-clock"></i> {{ stats.last_updated }}
-                        </span>
+                <div class="header-left">
+                    <div class="total-count">
+                        <span class="count-number">{{ total }}</span>
+                        <span class="count-label">条岗位</span>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary" v-if="stats.sources['实习僧']">实习僧 {{ stats.sources['实习僧'] }}</span>
-                        <span class="badge bg-success" v-if="stats.sources['国家平台']">国家平台 {{ stats.sources['国家平台'] }}</span>
-                        <span class="badge bg-info" v-if="stats.sources['官网']">官网 {{ stats.sources['官网'] }}</span>
-                    </div>
+                    <span class="last-updated" v-if="stats.last_updated">
+                        <i class="bi bi-clock"></i> {{ stats.last_updated }}
+                    </span>
+                </div>
+                <div class="header-right">
+                    <span class="source-badge shixiseng" v-if="stats.sources['实习僧']">
+                        <i class="bi bi-building"></i> 实习僧 {{ stats.sources['实习僧'] }}
+                    </span>
+                    <span class="source-badge ncss" v-if="stats.sources['国家平台']">
+                        <i class="bi bi-globe"></i> 国家平台 {{ stats.sources['国家平台'] }}
+                    </span>
+                    <span class="source-badge official" v-if="stats.sources['官网']">
+                        <i class="bi bi-link-45deg"></i> 官网 {{ stats.sources['官网'] }}
+                    </span>
                 </div>
             </div>
 
             <!-- 加载中 -->
-            <div class="text-center py-5" v-if="loading">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted">加载中...</p>
+            <div class="loading-state" v-if="loading">
+                <div class="loading-spinner"></div>
+                <p>加载中...</p>
             </div>
 
             <!-- 无数据 -->
-            <div class="text-center py-5" v-else-if="jobs.length === 0">
-                <i class="bi bi-inbox display-1 text-muted"></i>
-                <p class="mt-2 text-muted">暂无岗位数据，请先在左侧点击"开始抓取"</p>
+            <div class="empty-state" v-else-if="jobs.length === 0">
+                <div class="empty-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                <h3>暂无岗位数据</h3>
+                <p>请先在左侧点击"开始抓取"获取数据</p>
             </div>
 
             <!-- 岗位卡片列表 -->
-            <div class="job-card" v-for="job in jobs" :key="job.id">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <h5 class="job-title mb-1">
-                            <a :href="job.job_url" target="_blank" rel="noopener noreferrer">{{ job.job_title }}</a>
-                        </h5>
-                        <div class="job-meta mb-2">
-                            <span class="company-name"><i class="bi bi-building me-1"></i>{{ job.company_name }}</span>
-                            <span class="location" v-if="job.location"><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>
-                            <span class="education" v-if="job.education"><i class="bi bi-mortarboard me-1"></i>{{ job.education }}</span>
-                            <span class="company-nature" v-if="job.company_nature"><i class="bi bi-diagram-3 me-1"></i>{{ job.company_nature }}</span>
-                            <span class="company-size" v-if="job.company_size"><i class="bi bi-people me-1"></i>{{ job.company_size }}</span>
+            <div class="job-list">
+                <div class="job-card" v-for="job in jobs" :key="job.id">
+                    <div class="card-header">
+                        <div class="card-main">
+                            <h3 class="job-title">
+                                <a :href="job.job_url" target="_blank" rel="noopener noreferrer">{{ job.job_title }}</a>
+                            </h3>
+                            <div class="job-meta">
+                                <span class="meta-item company"><i class="bi bi-building"></i>{{ job.company_name }}</span>
+                                <span class="meta-item location" v-if="job.location"><i class="bi bi-geo-alt"></i>{{ job.location }}</span>
+                                <span class="meta-item education" v-if="job.education"><i class="bi bi-mortarboard"></i>{{ job.education }}</span>
+                                <span class="meta-item nature" v-if="job.company_nature"><i class="bi bi-diagram-3"></i>{{ job.company_nature }}</span>
+                                <span class="meta-item size" v-if="job.company_size"><i class="bi bi-people"></i>{{ job.company_size }}</span>
+                            </div>
+                        </div>
+                        <div class="card-right">
+                            <div class="salary" v-if="job.salary">{{ job.salary }}</div>
+                            <div class="job-tags">
+                                <span class="tag intern" v-if="job.job_type === 'intern'">实习</span>
+                                <span class="tag graduate" v-else-if="job.job_type === 'graduate'">校招</span>
+                                <span class="tag industry" v-if="job.industry">{{ job.industry }}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="text-end">
-                        <div class="salary mb-1" v-if="job.salary">{{ job.salary }}</div>
-                        <span class="badge bg-primary" v-if="job.job_type === 'intern'">实习</span>
-                        <span class="badge bg-success" v-else-if="job.job_type === 'graduate'">校招</span>
-                        <span class="badge bg-info text-dark" v-if="job.industry">{{ job.industry }}</span>
+
+                    <div class="card-body">
+                        <div class="welfare-tags" v-if="job.welfare">
+                            <span class="welfare-tag" v-for="tag in job.welfare.match(/.{1,6}/g)" :key="tag">{{ tag }}</span>
+                        </div>
+                        <div class="job-desc-wrapper">
+                            <p class="job-desc" :class="{ expanded: job._expanded }">{{ job.job_desc || '暂无岗位描述' }}</p>
+                            <button class="expand-btn" @click="job._expanded = !job._expanded" v-if="job.job_desc && job.job_desc.length > 100">
+                                {{ job._expanded ? '收起' : '展开全部' }}
+                                <i :class="job._expanded ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="job-desc-container">
-                    <div class="job-welfare mb-1" v-if="job.welfare">
-                        <span class="badge bg-light text-dark border me-1" v-for="tag in job.welfare.match(/.{1,6}/g)" :key="tag">{{ tag }}</span>
+
+                    <div class="card-footer">
+                        <div class="footer-left">
+                            <span class="publish-date"><i class="bi bi-calendar3"></i>{{ job.publish_date || '未知' }}</span>
+                            <span class="source-tag"><i class="bi bi-tag"></i>{{ job.source }}</span>
+                        </div>
+                        <a :href="job.job_url" target="_blank" rel="noopener noreferrer" class="btn-detail">
+                            查看详情 <i class="bi bi-arrow-right"></i>
+                        </a>
                     </div>
-                    <p class="job-desc mb-2" :class="{ 'expanded': job._expanded }">{{ job.job_desc || '暂无岗位描述' }}</p>
-                    <button class="btn btn-link btn-sm p-0" @click="job._expanded = !job._expanded" v-if="job.job_desc && job.job_desc.length > 100">
-                        {{ job._expanded ? '收起' : '展开' }}
-                        <i :class="job._expanded ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
-                    </button>
-                </div>
-                <div class="job-footer">
-                    <span class="publish-date"><i class="bi bi-calendar me-1"></i>{{ job.publish_date || '未知' }}</span>
-                    <span class="source"><i class="bi bi-tag me-1"></i>{{ job.source }}</span>
-                    <a :href="job.job_url" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-box-arrow-up-right me-1"></i>详情
-                    </a>
                 </div>
             </div>
 
             <!-- 分页 -->
-            <div class="d-flex justify-content-between align-items-center mt-3 mb-5" v-if="totalPages > 0">
-                <div class="text-muted">
+            <div class="pagination-wrapper" v-if="totalPages > 0">
+                <div class="pagination-info">
                     第 {{ currentPage }} / {{ totalPages }} 页
                 </div>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" :class="{ disabled: currentPage <= 1 }">
-                            <a class="page-link" href="#" @click.prevent="goToPage(1)">首页</a>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage <= 1 }">
-                            <a class="page-link" href="#" @click.prevent="goToPage(currentPage - 1)">上一页</a>
-                        </li>
-                        <template v-for="page in displayPages" :key="page">
-                            <li class="page-item disabled" v-if="page === '...'">
-                                <span class="page-link">...</span>
-                            </li>
-                            <li class="page-item" v-else :class="{ active: page === currentPage }">
-                                <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
-                            </li>
-                        </template>
-                        <li class="page-item" :class="{ disabled: currentPage >= totalPages }">
-                            <a class="page-link" href="#" @click.prevent="goToPage(currentPage + 1)">下一页</a>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage >= totalPages }">
-                            <a class="page-link" href="#" @click.prevent="goToPage(totalPages)">末页</a>
-                        </li>
-                    </ul>
-                </nav>
-                <div class="input-group input-group-sm" style="width: 130px;">
-                    <span class="input-group-text">跳至</span>
-                    <input type="number" class="form-control" v-model.number="jumpPage" @keyup.enter="goToPage(jumpPage)" min="1" :max="totalPages">
-                    <button class="btn btn-outline-secondary" @click="goToPage(jumpPage)">GO</button>
+                <div class="pagination-controls">
+                    <button class="page-btn" :disabled="currentPage <= 1" @click="goToPage(1)">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </button>
+                    <button class="page-btn" :disabled="currentPage <= 1" @click="goToPage(currentPage - 1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <template v-for="page in displayPages" :key="page">
+                        <span class="page-ellipsis" v-if="page === '...'">...</span>
+                        <button class="page-btn" v-else :class="{ active: page === currentPage }" @click="goToPage(page)">
+                            {{ page }}
+                        </button>
+                    </template>
+                    <button class="page-btn" :disabled="currentPage >= totalPages" @click="goToPage(currentPage + 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="page-btn" :disabled="currentPage >= totalPages" @click="goToPage(totalPages)">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </button>
+                </div>
+                <div class="pagination-jump">
+                    <span>跳至</span>
+                    <input type="number" v-model.number="jumpPage" @keyup.enter="goToPage(jumpPage)" min="1" :max="totalPages">
+                    <button @click="goToPage(jumpPage)">GO</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>{% endraw %}
