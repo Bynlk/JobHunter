@@ -85,8 +85,50 @@ class NCSSCrawler(BaseCrawler):
         finally:
             page.close()
 
+        # 获取详情页描述
+        if all_jobs:
+            self.report_progress("国家平台 - 正在获取岗位详情...", len(all_jobs))
+            self._enrich_jobs(all_jobs, max_count=50)
+
         logger.info(f"国家平台抓取完成，共获取 {len(all_jobs)} 条岗位数据")
         return all_jobs
+
+    def _enrich_jobs(self, jobs, max_count=50):
+        """访问详情页获取岗位描述"""
+        count = 0
+        for job in jobs:
+            if count >= max_count or self.should_stop():
+                break
+            if not job.get('job_url') or job.get('job_desc'):
+                continue
+            try:
+                detail_page = self.create_page()
+                try:
+                    if self.safe_goto(detail_page, job['job_url'], wait_ms=3000):
+                        desc_selectors = [
+                            '.job-detail', '.detail-content', '.job-desc',
+                            '.position-detail', '.job-content', '.content',
+                            '[class*="detail"]', '[class*="desc"]',
+                            'article', 'main',
+                        ]
+                        for sel in desc_selectors:
+                            el = detail_page.query_selector(sel)
+                            if el:
+                                text = el.inner_text().strip()
+                                if len(text) > 50:
+                                    job['job_desc'] = self.clean_text(text[:3000])
+                                    break
+                        # 补充学历（如果详情页有更精确的）
+                        if not job.get('education'):
+                            edu_el = detail_page.query_selector('[class*="degree"], [class*="education"], [class*="academic"]')
+                            if edu_el:
+                                job['education'] = edu_el.text_content().strip()
+                finally:
+                    detail_page.close()
+                count += 1
+                self.random_delay(1, 2)
+            except Exception as e:
+                logger.debug(f"获取详情失败: {job.get('job_url')} - {e}")
 
     def _normalize_job(self, item):
         """

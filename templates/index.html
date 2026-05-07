@@ -37,109 +37,121 @@
 
                 <!-- 筛选区 -->
                 <div class="sidebar-section">
-                    <div class="section-header">
+                    <div class="section-header" @click="filtersExpanded = !filtersExpanded" style="cursor:pointer">
                         <h6 class="section-title"><i class="bi bi-funnel"></i> 筛选条件</h6>
-                        <button class="btn-reset" @click="resetFilters" title="重置筛选">
-                            <i class="bi bi-arrow-counterclockwise"></i>
-                        </button>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">公司</label>
-                        <select v-model="filters.company">
-                            <option value="">全部公司</option>
-                            <option v-for="company in companies" :key="company" :value="company">{{ company }}</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">工作地点</label>
-                        <input type="text" v-model="filters.location" placeholder="如：北京">
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">岗位类型</label>
-                        <div class="radio-group">
-                            <label class="radio-item" :class="{ active: filters.job_type === 'all' }">
-                                <input type="radio" v-model="filters.job_type" value="all"> 不限
-                            </label>
-                            <label class="radio-item" :class="{ active: filters.job_type === 'intern' }">
-                                <input type="radio" v-model="filters.job_type" value="intern"> 实习
-                            </label>
-                            <label class="radio-item" :class="{ active: filters.job_type === 'graduate' }">
-                                <input type="radio" v-model="filters.job_type" value="graduate"> 校招
-                            </label>
+                        <div class="section-header-actions">
+                            <button class="btn-reset" @click.stop="resetFilters" title="重置筛选">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <i :class="filtersExpanded ? 'bi bi-chevron-up' : 'bi bi-chevron-down'" class="expand-icon"></i>
                         </div>
                     </div>
 
-                    <div class="filter-group">
-                        <label class="filter-label">薪资范围 (K)</label>
-                        <div class="range-inputs">
-                            <input type="number" v-model="filters.salary_min" placeholder="最低">
-                            <span class="range-separator">—</span>
-                            <input type="number" v-model="filters.salary_max" placeholder="最高">
+                    <div v-show="filtersExpanded" class="filter-body">
+                        <div class="filter-group">
+                            <label class="filter-label">公司</label>
+                            <select v-model="filters.company">
+                                <option value="">全部公司</option>
+                                <option v-for="company in companies" :key="company" :value="company">{{ company }}</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">工作地点</label>
+                            <input type="text" v-model="filters.location" placeholder="如：北京">
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">岗位类型</label>
+                            <div class="radio-group">
+                                <label class="radio-item" :class="{ active: filters.job_type === 'all' }">
+                                    <input type="radio" v-model="filters.job_type" value="all"> 不限
+                                </label>
+                                <label class="radio-item" :class="{ active: filters.job_type === 'intern' }">
+                                    <input type="radio" v-model="filters.job_type" value="intern"> 实习
+                                </label>
+                                <label class="radio-item" :class="{ active: filters.job_type === 'graduate' }">
+                                    <input type="radio" v-model="filters.job_type" value="graduate"> 校招
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">薪资范围 (K)</label>
+                            <div class="range-inputs">
+                                <input type="number" v-model="filters.salary_min" placeholder="最低">
+                                <span class="range-separator">—</span>
+                                <input type="number" v-model="filters.salary_max" placeholder="最高">
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">发布日期</label>
+                            <div class="range-inputs">
+                                <input type="date" v-model="filters.date_from">
+                                <span class="range-separator">—</span>
+                                <input type="date" v-model="filters.date_to">
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">数据来源</label>
+                            <select v-model="filters.source">
+                                <option value="">全部来源</option>
+                                <option value="实习僧">实习僧</option>
+                                <option value="国家平台">国家平台</option>
+                                <option value="官网">官网</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">行业</label>
+                            <select v-model="filters.industry">
+                                <option value="">全部行业</option>
+                                <option v-for="ind in industries" :key="ind" :value="ind">{{ ind }}</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">公司性质</label>
+                            <select v-model="filters.company_nature">
+                                <option value="">不限</option>
+                                <option value="民营企业">民营企业</option>
+                                <option value="国有企业">国有企业</option>
+                                <option value="外资企业">外资企业</option>
+                                <option value="合资企业">合资企业</option>
+                                <option value="事业单位">事业单位</option>
+                                <option value="政府机关">政府机关</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label class="filter-label">学历要求</label>
+                            <select v-model="filters.education">
+                                <option value="">不限</option>
+                                <option value="博士">博士</option>
+                                <option value="硕士">硕士</option>
+                                <option value="本科">本科</option>
+                                <option value="大专">大专</option>
+                            </select>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn-primary" @click="searchJobs">
+                                <i class="bi bi-search"></i> 搜索
+                            </button>
+                            <button class="btn-export" @click="exportExcel" title="导出 Excel">
+                                <i class="bi bi-file-earmark-excel"></i> 导出
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    <div class="filter-group">
-                        <label class="filter-label">发布日期</label>
-                        <div class="range-inputs">
-                            <input type="date" v-model="filters.date_from">
-                            <span class="range-separator">—</span>
-                            <input type="date" v-model="filters.date_to">
-                        </div>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">数据来源</label>
-                        <select v-model="filters.source">
-                            <option value="">全部来源</option>
-                            <option value="实习僧">实习僧</option>
-                            <option value="国家平台">国家平台</option>
-                            <option value="官网">官网</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">行业</label>
-                        <select v-model="filters.industry">
-                            <option value="">全部行业</option>
-                            <option v-for="ind in industries" :key="ind" :value="ind">{{ ind }}</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">公司性质</label>
-                        <select v-model="filters.company_nature">
-                            <option value="">不限</option>
-                            <option value="民营企业">民营企业</option>
-                            <option value="国有企业">国有企业</option>
-                            <option value="外资企业">外资企业</option>
-                            <option value="合资企业">合资企业</option>
-                            <option value="事业单位">事业单位</option>
-                            <option value="政府机关">政府机关</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">学历要求</label>
-                        <select v-model="filters.education">
-                            <option value="">不限</option>
-                            <option value="博士">博士</option>
-                            <option value="硕士">硕士</option>
-                            <option value="本科">本科</option>
-                            <option value="大专">大专</option>
-                        </select>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button class="btn-primary" @click="searchJobs">
-                            <i class="bi bi-search"></i> 搜索
-                        </button>
-                        <button class="btn-export" @click="exportExcel" title="导出 Excel">
-                            <i class="bi bi-file-earmark-excel"></i> 导出
-                        </button>
-                    </div>
+                <!-- 大厂官网入口 -->
+                <div class="sidebar-section">
+                    <button class="btn-company-list" @click="showCompanyModal = true">
+                        <i class="bi bi-buildings"></i> 大厂招聘官网 (198家)
+                    </button>
                 </div>
 
                 <!-- 统计信息 -->
@@ -163,6 +175,9 @@
                             <span class="stat-label">官网</span>
                         </div>
                     </div>
+                    <button class="btn-clear" @click="clearAllJobs" :disabled="crawlStatus.status === 'running'">
+                        <i class="bi bi-trash3"></i> 清空数据
+                    </button>
                 </div>
 
                 <!-- 爬虫控制 -->
@@ -195,6 +210,12 @@
                         <span>{{ crawlStatus.error_message }}</span>
                     </div>
 
+                    <!-- 停止提示 -->
+                    <div v-if="crawlStatus.status === 'stopped'" class="crawl-alert warning">
+                        <i class="bi bi-stop-circle"></i>
+                        <span>{{ crawlStatus.progress }}</span>
+                    </div>
+
                     <!-- 数据源选择 -->
                     <div class="source-options">
                         <label class="source-item" v-for="opt in crawlOptions" :key="opt.value"
@@ -205,10 +226,15 @@
                         </label>
                     </div>
 
-                    <button class="btn-crawl" @click="startCrawl" :disabled="crawlStatus.status === 'running'">
-                        <i class="bi bi-cloud-download"></i>
-                        <span>{{ crawlStatus.status === 'running' ? '抓取中...' : '开始抓取' }}</span>
-                    </button>
+                    <div class="crawl-actions">
+                        <button class="btn-crawl" @click="startCrawl" :disabled="crawlStatus.status === 'running'">
+                            <i class="bi bi-cloud-download"></i>
+                            <span>{{ crawlStatus.status === 'running' ? '抓取中...' : '开始抓取' }}</span>
+                        </button>
+                        <button class="btn-stop" @click="stopCrawl" v-if="crawlStatus.status === 'running'">
+                            <i class="bi bi-stop-circle"></i> 停止
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 页脚 -->
@@ -342,6 +368,55 @@
                 </div>
             </div>
         </main>
+
+        <!-- 大厂官网弹窗 -->
+        <div class="modal-overlay" v-if="showCompanyModal" @click.self="showCompanyModal = false">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="bi bi-buildings"></i> 大厂招聘官网</h3>
+                    <div class="modal-header-actions">
+                        <input type="text" v-model="companySearch" placeholder="搜索公司..." class="modal-search">
+                        <button class="modal-close" @click="showCompanyModal = false">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="company-filter-tags">
+                        <span class="filter-tag" :class="{ active: companyIndustryFilter === '' }" @click="companyIndustryFilter = ''">全部</span>
+                        <span class="filter-tag" v-for="ind in companyIndustries" :key="ind"
+                              :class="{ active: companyIndustryFilter === ind }" @click="companyIndustryFilter = ind">
+                            {{ ind }} ({{ companyIndustryCounts[ind] }})
+                        </span>
+                    </div>
+                    <div class="company-table-wrap">
+                        <table class="company-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>公司名称</th>
+                                    <th>行业</th>
+                                    <th>招聘官网</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(c, idx) in filteredCompanies" :key="c.name">
+                                    <td>{{ idx + 1 }}</td>
+                                    <td><strong>{{ c.name }}</strong></td>
+                                    <td><span class="industry-badge">{{ c.industry }}</span></td>
+                                    <td><a :href="c.url" target="_blank" rel="noopener noreferrer" class="company-link">
+                                        {{ c.url.replace(/^https?:\/\//, '').split('/')[0] }} <i class="bi bi-box-arrow-up-right"></i>
+                                    </a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        共 {{ filteredCompanies.length }} 家公司
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>

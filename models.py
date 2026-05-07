@@ -511,6 +511,22 @@ def get_stats():
         }
 
 
+def clear_all_jobs():
+    """
+    清空所有岗位数据
+
+    Returns:
+        int: 被删除的记录数
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM jobs')
+        count = cursor.fetchone()[0]
+        cursor.execute('DELETE FROM jobs')
+        logger.info(f"已清空 {count} 条岗位数据")
+        return count
+
+
 def export_jobs(keyword=None, company=None, location=None, job_type=None,
                 salary_min=None, salary_max=None, date_from=None, date_to=None,
                 source=None, industry=None, company_nature=None, education=None):

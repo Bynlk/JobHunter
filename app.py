@@ -19,8 +19,8 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 # 将项目根目录加入 Python 路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config import FLASK_CONFIG, DEFAULT_PER_PAGE, MAX_PER_PAGE, EXPORT_CONFIG
-from models import init_database, query_jobs, get_job_by_id, get_all_companies, get_all_industries, get_stats, export_jobs, batch_insert_jobs
+from config import FLASK_CONFIG, DEFAULT_PER_PAGE, MAX_PER_PAGE, EXPORT_CONFIG, BASE_DIR
+from models import init_database, query_jobs, get_job_by_id, get_all_companies, get_all_industries, get_stats, export_jobs, batch_insert_jobs, clear_all_jobs
 
 # 配置日志
 logging.basicConfig(
@@ -42,12 +42,13 @@ crawl_status_lock = threading.Lock()
 
 # 爬虫状态字典
 crawl_status = {
-    'status': 'idle',       # idle / running / done / error
+    'status': 'idle',       # idle / running / done / error / stopped
     'progress': '',          # 当前进度描述
     'total_new': 0,          # 新增数据条数
     'error_message': '',     # 错误信息
     'task_id': '',           # 任务 ID
     'source': '',            # 当前抓取的数据源
+    'stop_requested': False, # 是否请求停止
 }
 
 
@@ -76,6 +77,12 @@ def update_crawl_status(status=None, progress=None, total_new=None, error_messag
             crawl_status['task_id'] = task_id
         if source is not None:
             crawl_status['source'] = source
+
+
+def is_crawl_stopped():
+    """检查爬虫是否被请求停止（线程安全）"""
+    with crawl_status_lock:
+        return crawl_status.get('stop_requested', False)
 
 
 def run_crawler_task(source):
@@ -107,16 +114,17 @@ def run_crawler_task(source):
             update_crawl_status(total_new=total_new[0])
             logger.info(f"实时插入: 新增 {inserted} 条, 更新 {updated} 条, 累计 {total_new[0]} 条")
 
-        if source in ('shixiseng', 'all'):
+        if source in ('shixiseng', 'all') and not is_crawl_stopped():
             update_crawl_status(progress='正在抓取实习僧数据...')
             try:
                 from crawler.shixiseng_crawler import ShixisengCrawler
                 crawler = ShixisengCrawler()
                 crawler.set_progress_callback(progress_callback)
                 crawler.set_jobs_callback(on_jobs_found)
+                crawler.set_stop_check(is_crawl_stopped)
                 jobs = crawler.run()
                 # 获取详情页的薪资和描述
-                if jobs:
+                if jobs and not is_crawl_stopped():
                     update_crawl_status(progress='实习僧 - 正在获取岗位详情...')
                     crawler.start_browser()
                     crawler.enrich_jobs(jobs, max_count=100)
@@ -129,37 +137,46 @@ def run_crawler_task(source):
                 logger.error(f"实习僧爬虫异常: {e}")
                 update_crawl_status(progress=f'实习僧抓取出错: {str(e)}')
 
-        if source in ('ncss', 'all'):
+        if source in ('ncss', 'all') and not is_crawl_stopped():
             update_crawl_status(progress='正在抓取国家平台数据...')
             try:
                 from crawler.ncss_crawler import NCSSCrawler
                 crawler = NCSSCrawler()
                 crawler.set_progress_callback(progress_callback)
                 crawler.set_jobs_callback(on_jobs_found)
+                crawler.set_stop_check(is_crawl_stopped)
                 jobs = crawler.run()
                 logger.info(f"国家平台爬虫结束，共处理 {len(jobs)} 条数据")
             except Exception as e:
                 logger.error(f"国家平台爬虫异常: {e}")
                 update_crawl_status(progress=f'国家平台抓取出错: {str(e)}')
 
-        if source in ('websites', 'all'):
+        if source in ('websites', 'all') and not is_crawl_stopped():
             update_crawl_status(progress='正在抓取大厂官网数据...')
             try:
                 from crawler.website_crawler import WebsiteCrawler
                 crawler = WebsiteCrawler()
                 crawler.set_progress_callback(progress_callback)
                 crawler.set_jobs_callback(on_jobs_found)
+                crawler.set_stop_check(is_crawl_stopped)
                 jobs = crawler.run()
                 logger.info(f"大厂官网爬虫结束，共处理 {len(jobs)} 条数据")
             except Exception as e:
                 logger.error(f"大厂官网爬虫异常: {e}")
                 update_crawl_status(progress=f'大厂官网抓取出错: {str(e)}')
 
-        update_crawl_status(
-            status='done',
-            progress=f'抓取完成！共新增 {total_new[0]} 条数据',
-            total_new=total_new[0]
-        )
+        if is_crawl_stopped():
+            update_crawl_status(
+                status='stopped',
+                progress=f'已停止，已新增 {total_new[0]} 条数据',
+                total_new=total_new[0]
+            )
+        else:
+            update_crawl_status(
+                status='done',
+                progress=f'抓取完成！共新增 {total_new[0]} 条数据',
+                total_new=total_new[0]
+            )
         logger.info(f"爬虫任务完成，共新增 {total_new[0]} 条数据")
 
     except Exception as e:
@@ -265,6 +282,21 @@ def api_get_job(job_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/jobs/clear', methods=['POST'])
+def api_clear_jobs():
+    """清空所有岗位数据 API"""
+    try:
+        # 检查是否有爬虫在运行
+        with crawl_status_lock:
+            if crawl_status['status'] == 'running':
+                return jsonify({'error': '爬虫正在运行中，无法清空数据'}), 409
+        count = clear_all_jobs()
+        return jsonify({'message': f'已清空 {count} 条数据', 'deleted': count})
+    except Exception as e:
+        logger.error(f"清空数据失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/crawl', methods=['POST'])
 def api_start_crawl():
     """
@@ -290,7 +322,9 @@ def api_start_crawl():
         # 生成任务 ID
         task_id = str(uuid.uuid4())
         
-        # 更新状态为运行中
+        # 更新状态为运行中，重置停止标志
+        with crawl_status_lock:
+            crawl_status['stop_requested'] = False
         update_crawl_status(
             status='running',
             progress='正在启动爬虫任务...',
@@ -334,6 +368,18 @@ def api_crawl_status():
             'total_new': crawl_status['total_new'],
             'error_message': crawl_status['error_message'],
         })
+
+
+@app.route('/api/crawl/stop', methods=['POST'])
+def api_stop_crawl():
+    """停止爬虫任务 API"""
+    with crawl_status_lock:
+        if crawl_status['status'] != 'running':
+            return jsonify({'error': '没有正在运行的爬虫任务'}), 409
+        crawl_status['stop_requested'] = True
+        crawl_status['progress'] = '正在停止...'
+    logger.info("收到停止爬虫请求")
+    return jsonify({'status': 'stopping'})
 
 
 @app.route('/api/export', methods=['GET'])
@@ -493,6 +539,20 @@ def api_get_companies():
         return jsonify(companies)
     except Exception as e:
         logger.error(f"获取公司列表失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/companies/config', methods=['GET'])
+def api_get_companies_config():
+    """获取大厂招聘官网配置列表"""
+    try:
+        import json as _json
+        config_file = os.path.join(BASE_DIR, 'config', 'company_urls.json')
+        with open(config_file, 'r', encoding='utf-8') as f:
+            companies = _json.load(f)
+        return jsonify(companies)
+    except Exception as e:
+        logger.error(f"获取公司配置失败: {e}")
         return jsonify({'error': str(e)}), 500
 
 

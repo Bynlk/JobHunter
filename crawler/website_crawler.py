@@ -7,12 +7,10 @@
 
 import logging
 import json
-import os
 import re
-from datetime import datetime
 
 from .base_crawler import BaseCrawler
-from config import WEBSITE_CONFIG, SOURCE_WEBSITE, BASE_DIR
+from config import WEBSITE_CONFIG, SOURCE_WEBSITE
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -154,7 +152,7 @@ class WebsiteCrawler(BaseCrawler):
             
             # 如果列表页没有详情链接，尝试进入详情页
             if jobs and not any(j.get('job_desc') for j in jobs):
-                self._enrich_job_details(page, jobs[:10])  # 只对前10条获取详情
+                self._enrich_job_details(page, jobs[:30])  # 对前30条获取详情
             
         except Exception as e:
             logger.error(f"抓取 {company_name} 异常: {e}")
@@ -194,12 +192,12 @@ class WebsiteCrawler(BaseCrawler):
             try:
                 cards = page.query_selector_all(card_selector)
                 if cards and len(cards) >= 3:
-                    # 验证这些元素是否包含链接和文本
+                    # 验证这些元素是否包含链接和文本，过滤广告
                     valid_cards = []
                     for card in cards[:30]:  # 只检查前30个
                         text = card.inner_text().strip()
                         has_link = card.query_selector('a[href]') is not None
-                        if text and len(text) > 10 and has_link:
+                        if text and len(text) > 10 and has_link and not self._is_ad_element(card, text):
                             valid_cards.append(card)
                     
                     if len(valid_cards) >= 2:
@@ -246,20 +244,69 @@ class WebsiteCrawler(BaseCrawler):
             page.evaluate('window.scrollBy(0, 800)')
             self.random_delay(0.5, 1)
     
+    # 广告/推广相关关键词
+    AD_KEYWORDS = [
+        '广告', '推广', 'banner', 'ad-', '-ad', 'sponsor', 'promo',
+        'hot-list', 'recommend', 'promotion', 'marketing-banner',
+        'sidebar', 'footer', 'header', 'nav', 'menu', 'breadcrumb',
+    ]
+
+    def _is_ad_element(self, element, full_text):
+        """
+        判断元素是否为广告或非岗位内容
+
+        Args:
+            element: DOM 元素
+            full_text: 元素文本
+
+        Returns:
+            bool: True 表示是广告
+        """
+        # 检查 class 和 id 是否包含广告关键词
+        try:
+            class_attr = element.get_attribute('class') or ''
+            id_attr = element.get_attribute('id') or ''
+            attrs = (class_attr + ' ' + id_attr).lower()
+
+            for kw in self.AD_KEYWORDS:
+                if kw in attrs:
+                    return True
+
+            # 检查是否包含广告链接模式
+            links = element.query_selector_all('a[href]')
+            for link in links:
+                href = (link.get_attribute('href') or '').lower()
+                if any(x in href for x in ['ad.', 'ads.', 'click.', 'track.', 'redirect.', 'banner']):
+                    return True
+
+            # 文本过短或过长都不像岗位卡片
+            if len(full_text) < 5 or len(full_text) > 500:
+                return True
+
+            # 纯图片/无文本内容
+            text_only = re.sub(r'\s+', '', full_text)
+            if len(text_only) < 3:
+                return True
+
+        except Exception:
+            pass
+
+        return False
+
     def _parse_job_element(self, element, company_name, industry, base_url):
         """
         解析单个岗位元素，提取岗位信息
-        
+
         使用多种策略智能提取字段
-        
+
         Args:
             element: 岗位元素
             company_name: 公司名称
             industry: 行业
             base_url: 基础URL
-        
+
         Returns:
-            dict: 岗位数据字典
+            dict: 岗位数据字典，如果判定为广告则返回 None
         """
         job_data = {
             'job_title': '',
@@ -273,10 +320,14 @@ class WebsiteCrawler(BaseCrawler):
             'job_url': '',
             'source': SOURCE_WEBSITE,
         }
-        
+
         # 获取元素的完整文本
         full_text = element.inner_text().strip()
-        
+
+        # 过滤广告元素
+        if self._is_ad_element(element, full_text):
+            return None
+
         # 提取岗位名称
         # 策略1: 查找标题元素
         title_selectors = [
@@ -285,7 +336,7 @@ class WebsiteCrawler(BaseCrawler):
             '[class*="title"]', '[class*="name"]',
             'a',  # 链接文本通常是岗位名称
         ]
-        
+
         for selector in title_selectors:
             el = element.query_selector(selector)
             if el:
@@ -293,7 +344,7 @@ class WebsiteCrawler(BaseCrawler):
                 if text and len(text) < 100:  # 标题不应该太长
                     job_data['job_title'] = text
                     break
-        
+
         # 如果没找到标题，使用元素的第一行文本
         if not job_data['job_title'] and full_text:
             lines = [line.strip() for line in full_text.split('\n') if line.strip()]
@@ -413,6 +464,8 @@ class WebsiteCrawler(BaseCrawler):
             jobs: 岗位数据列表
         """
         for job in jobs:
+            if self.should_stop():
+                break
             if not job.get('job_url') or job.get('job_desc'):
                 continue
             

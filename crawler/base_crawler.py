@@ -53,6 +53,9 @@ class BaseCrawler(ABC):
         # 岗位数据回调函数（用于实时推送）
         self.jobs_callback = None
 
+        # 停止检查函数（由外部注入）
+        self._stop_check = None
+
         logger.info(f"爬虫初始化完成: {self.__class__.__name__}")
     
     def set_progress_callback(self, callback):
@@ -72,6 +75,14 @@ class BaseCrawler(ABC):
             callback: 回调函数，接受 jobs_list 参数
         """
         self.jobs_callback = callback
+
+    def set_stop_check(self, check_fn):
+        """注入停止检查函数"""
+        self._stop_check = check_fn
+
+    def should_stop(self):
+        """检查是否应该停止"""
+        return self._stop_check() if self._stop_check else False
 
     def emit_jobs(self, jobs_list):
         """

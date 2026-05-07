@@ -38,6 +38,12 @@ const app = createApp({
         const crawlSource = ref('all');
         const jumpPage = ref(1);
         const sidebarCollapsed = ref(false);
+        const filtersExpanded = ref(false);
+
+        const showCompanyModal = ref(false);
+        const companyList = ref([]);
+        const companySearch = ref('');
+        const companyIndustryFilter = ref('');
 
         let crawlPollTimer = null;
         let lastTotalNew = 0;
@@ -70,6 +76,30 @@ const app = createApp({
                 pages.push(t);
             }
             return pages;
+        });
+
+        const companyIndustries = computed(() => {
+            const counts = {};
+            companyList.value.forEach(c => { counts[c.industry] = (counts[c.industry] || 0) + 1; });
+            return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+        });
+
+        const companyIndustryCounts = computed(() => {
+            const counts = {};
+            companyList.value.forEach(c => { counts[c.industry] = (counts[c.industry] || 0) + 1; });
+            return counts;
+        });
+
+        const filteredCompanies = computed(() => {
+            let list = companyList.value;
+            if (companyIndustryFilter.value) {
+                list = list.filter(c => c.industry === companyIndustryFilter.value);
+            }
+            if (companySearch.value.trim()) {
+                const q = companySearch.value.trim().toLowerCase();
+                list = list.filter(c => c.name.toLowerCase().includes(q) || c.url.toLowerCase().includes(q));
+            }
+            return list;
         });
 
         // ==================== 方法 ====================
@@ -188,6 +218,39 @@ const app = createApp({
             }
         }
 
+        async function stopCrawl() {
+            try {
+                const response = await fetch('/api/crawl/stop', { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(data.error || '停止失败');
+                }
+            } catch (error) {
+                console.error('停止爬虫异常:', error);
+            }
+        }
+
+        async function clearAllJobs() {
+            if (!confirm('确定要清空所有岗位数据吗？此操作不可恢复！')) return;
+            if (!confirm('再次确认：真的要删除全部数据吗？')) return;
+            try {
+                const response = await fetch('/api/jobs/clear', { method: 'POST' });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                    fetchJobs();
+                    fetchStats();
+                    fetchCompanies();
+                    fetchIndustries();
+                } else {
+                    alert(data.error || '清空失败');
+                }
+            } catch (error) {
+                console.error('清空数据异常:', error);
+                alert('清空失败: ' + error.message);
+            }
+        }
+
         function startCrawlStatusPolling() {
             if (crawlPollTimer) clearInterval(crawlPollTimer);
 
@@ -209,7 +272,7 @@ const app = createApp({
                         fetchIndustries();
                     }
 
-                    if (data.status === 'done' || data.status === 'error') {
+                    if (data.status === 'done' || data.status === 'error' || data.status === 'stopped') {
                         clearInterval(crawlPollTimer);
                         crawlPollTimer = null;
                         fetchJobs();
@@ -239,11 +302,19 @@ const app = createApp({
 
         // ==================== 生命周期 ====================
 
+        async function fetchCompanyList() {
+            try {
+                const res = await fetch('/api/companies/config');
+                companyList.value = await res.json();
+            } catch (e) { console.error('获取公司配置失败:', e); }
+        }
+
         onMounted(() => {
             fetchJobs();
             fetchCompanies();
             fetchIndustries();
             fetchStats();
+            fetchCompanyList();
 
             fetch('/api/crawl/status')
                 .then(res => res.json())
@@ -258,10 +329,12 @@ const app = createApp({
         return {
             jobs, total, currentPage, perPage, loading,
             filters, companies, industries, stats, crawlStatus, crawlSource,
-            jumpPage, sidebarCollapsed, crawlOptions,
+            jumpPage, sidebarCollapsed, crawlOptions, filtersExpanded,
+            showCompanyModal, companyList, companySearch, companyIndustryFilter,
+            companyIndustries, companyIndustryCounts, filteredCompanies,
             totalPages, displayPages,
             fetchJobs, fetchIndustries, searchJobs, resetFilters, goToPage,
-            startCrawl, exportExcel
+            startCrawl, stopCrawl, clearAllJobs, exportExcel
         };
     }
 });
