@@ -61,11 +61,11 @@ class ApiCrawler(BaseCrawler):
                 "categoryId": "",
             },
             "referer": "https://join.qq.com/post.html?query=",
-            "data_path": "data",
+            "data_path": "data.positionList",
             "field_mapping": {
-                "job_title": "title",
-                "location": "location",
-                "job_desc": "desc",
+                "job_title": "positionTitle",
+                "location": "workCities",
+                "job_desc": "recruitLabelName",
             },
         },
         "字节跳动": {
@@ -74,13 +74,16 @@ class ApiCrawler(BaseCrawler):
             "headers": {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "portal-channel": "campus",
+                "portal-platform": "pc",
+                "website-path": "campus",
             },
             "payload": {
                 "keyword": "",
                 "limit": 10,
                 "offset": 0,
-                "job_category_id_list": [],
-                "city_code_list": [],
+                "portal_type": 3,
+                "portal_entrance": 1,
                 "language": "zh",
             },
             "referer": "https://jobs.bytedance.com/campus/position",
@@ -111,21 +114,23 @@ class ApiCrawler(BaseCrawler):
             "field_mapping": {
                 "job_title": "name",
                 "job_desc": "desc",
+                "job_url": "jobUnionId",
             },
+            "job_url_template": "https://zhaopin.meituan.com/job-list/{jobUnionId}",
         },
         "京东": {
-            "api_url": "https://campus.jd.com/api/wx/position/page",
+            "api_url": "https://campus.jd.com/api/wx/position/page?type=internship",
             "method": "POST",
             "headers": {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
             },
             "payload": {
-                "type": "present",
                 "pageNo": 1,
                 "pageSize": 20,
             },
-            "referer": "https://campus.jd.com/#/jobs",
+            "referer": "https://campus.jd.com/",
             "data_path": "data",
             "field_mapping": {
                 "job_title": "name",
@@ -167,11 +172,14 @@ class ApiCrawler(BaseCrawler):
                 "keyword": "",
             },
             "referer": "https://iflytek.zhiye.com/jobs",
-            "data_path": "data",
+            "data_path": "Data",
+            "total_key": "Count",
             "field_mapping": {
-                "job_title": "title",
-                "location": "city",
-                "job_desc": "desc",
+                "job_title": "JobAdName",
+                "location": "LocNames",
+                "job_desc": "Duty",
+                "education": "Degree",
+                "publish_date": "PostDate",
             },
         },
         "滴滴": {
@@ -198,23 +206,26 @@ class ApiCrawler(BaseCrawler):
             "job_url_template": "https://talent.didiglobal.com/recruit-portal-service/api/job/front/view/{jdId}",
         },
         "网易": {
-            "api_url": "https://campus.163.com/api/campuspc/position/getJobList",
-            "method": "GET",
+            "api_url": "https://hr.163.com/api/hr163/position/queryPage",
+            "method": "POST",
             "headers": {
+                "Content-Type": "application/json",
                 "Accept": "application/json",
+                "language": "zh",
             },
-            "params": {
-                "pageIndex": 1,
+            "payload": {
                 "pageSize": 20,
+                "pageIndex": 1,
             },
-            "referer": "https://campus.163.com/web/job/list",
+            "referer": "https://hr.163.com/job-list.html?workType=1",
             "data_path": "data.list",
             "total_key": "data.total",
             "field_mapping": {
                 "job_title": "name",
-                "location": "workCity",
-                "job_desc": "requirement",
-                "publish_date": "publishTime",
+                "location": "workPlaceNameList",
+                "job_desc": "description",
+                "education": "reqEducationName",
+                "publish_date": "updateTime",
             },
         },
         "哔哩哔哩": {
@@ -223,12 +234,16 @@ class ApiCrawler(BaseCrawler):
             "headers": {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "x-appkey": "ops.ehr-api.auth",
+                "x-channel": "campus",
+                "x-usertype": "2",
             },
             "payload": {
                 "pageNo": 1,
                 "pageSize": 20,
             },
             "referer": "https://jobs.bilibili.com",
+            "csrf_cookie": "bili_jct",
             "data_path": "data.list",
             "field_mapping": {
                 "job_title": "name",
@@ -237,44 +252,27 @@ class ApiCrawler(BaseCrawler):
                 "publish_date": "publishTime",
             },
         },
-        "百度": {
-            "api_url": "https://talent.baidu.com/baidu/api/job/list",
+        "快手": {
+            "api_url": "https://campus.kuaishou.cn/recruit/campus/e/api/v1/open/positions/simple",
             "method": "POST",
             "headers": {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             },
             "payload": {
-                "pageNo": 1,
+                "pageNum": 1,
                 "pageSize": 20,
-                "workPlace": "",
-                "postType": "",
-                "deptCode": "",
-                "keyword": "",
             },
-            "referer": "https://talent.baidu.com/jobs/list",
-            "data_path": "data",
+            "referer": "https://campus.kuaishou.cn/recruit/campus/e/",
+            "data_path": "result.list",
+            "total_key": "result.total",
             "field_mapping": {
                 "job_title": "name",
-                "location": "workPlace",
-                "job_desc": "desc",
+                "job_desc": "description",
+                "publish_date": "releaseTime",
+                "job_url": "code",
             },
-        },
-        "快手": {
-            "api_url": "https://zhaopin.kuaishou.cn/recruit/e/api/campus/job-list",
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            "payload": {},
-            "referer": "https://zhaopin.kuaishou.cn/recruit/e/#/campus/job-list",
-            "data_path": "data",
-            "field_mapping": {
-                "job_title": "name",
-                "location": "city",
-                "job_desc": "desc",
-            },
+            "job_url_template": "https://campus.kuaishou.cn/recruit/campus/e/#/campus/job-list/{code}",
         },
         "大疆": {
             "api_url": "https://we.dji.com/hire_front/api/common/position/queryPositionCardList",
@@ -534,9 +532,12 @@ class ApiCrawler(BaseCrawler):
             publish_date = self._get_nested_value(item, field_mapping.get('publish_date', 'publishTime')) or ''
             job_url = self._get_nested_value(item, field_mapping.get('job_url', 'url')) or ''
 
-            # 处理地点是数组的情况
+            # 处理地点是数组的情况（支持字符串数组和对象数组）
             if isinstance(location, list):
-                location = ' / '.join(str(loc) for loc in location if loc)
+                location = ' / '.join(
+                    str(loc.get('name', loc)) if isinstance(loc, dict) else str(loc)
+                    for loc in location if loc
+                )
 
             # 处理描述字段
             if isinstance(job_desc, list):
