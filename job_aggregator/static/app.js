@@ -1,6 +1,6 @@
 /**
  * 实习&校招岗位聚合站 - Vue 3 应用逻辑
- * 侧边栏布局 + 实时刷新
+ * 现代化 UI + 毛玻璃效果
  */
 
 const { createApp, ref, reactive, computed, onMounted } = Vue;
@@ -133,7 +133,6 @@ const app = createApp({
                     const data = await response.json();
                     stats.total_jobs = data.total_jobs || 0;
                     stats.last_updated = data.last_updated || '';
-                    // 用 Object.assign 保持响应式
                     stats.sources = {};
                     Object.assign(stats.sources, data.sources || {});
                 }
@@ -202,7 +201,6 @@ const app = createApp({
                     crawlStatus.total_new = data.total_new;
                     crawlStatus.error_message = data.error_message;
 
-                    // 实时刷新：检测到新数据时自动刷新列表
                     if (data.total_new > lastTotalNew) {
                         lastTotalNew = data.total_new;
                         fetchJobs();
@@ -247,7 +245,6 @@ const app = createApp({
             fetchIndustries();
             fetchStats();
 
-            // 检查是否有正在进行的爬虫任务
             fetch('/api/crawl/status')
                 .then(res => res.json())
                 .then(data => {
